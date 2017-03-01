@@ -1,0 +1,11 @@
+*.sqlite
+.project
+.buildpath
+/.settings
+.*.un~
+.*.swp
+*.*~
+*.sqlite
+*.done
+composer.lock
+/vendor/*

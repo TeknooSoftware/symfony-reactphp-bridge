@@ -1,0 +1,39 @@
+{
+    "name": "teknoo/reactphp-symfony",
+    "description": "Bridge to use Symfony Framework with ReactPHP",
+    "license": "MIT",
+    "type": "library",
+    "keywords": ["HTTP", "HTTPS", "server", "ReactPHP","Symfony"],
+    "homepage": "http://teknoo.software/symfony-react",
+    "authors": [
+        {
+            "name": "Richard Déloge",
+            "email": "richarddeloge@gmail.com",
+            "role":"Software architect, Lead developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Teknoo\\ReactPHP\\Symfony\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Teknoo\\Tests\\ReactPHP\\Symfony\\": "tests/"
+        }
+    },
+    "require": {
+        "php": ">=7.0",
+        "symfony/symfony": "~3.2",
+        "react/http": "~0.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~5.4",
+        "squizlabs/php_codesniffer": "~2.8",
+        "pdepend/pdepend": "~2.5",
+        "phpmd/phpmd": "~2.6",
+        "sebastian/phpcpd": "~3.0",
+        "phploc/phploc": "~3.0"
+    },
+    "minimum-stability": "stable"
+}
