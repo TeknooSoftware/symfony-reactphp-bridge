@@ -41,6 +41,7 @@ class RequestListener
 
     /**
      * RequestListener constructor.
+     *
      * @param RequestBridge $bridge
      */
     public function __construct(RequestBridge $bridge)
@@ -52,7 +53,9 @@ class RequestListener
      * To get a valid HTTP method.
      *
      * @param ReactRequest $request
+     *
      * @return string
+     *
      * @throws \RuntimeException
      */
     private function getMethod(ReactRequest $request)
@@ -61,7 +64,7 @@ class RequestListener
 
         switch ($method) {
             case 'OPTIONS':
-            case 'HEAD';
+            case 'HEAD':
             case 'GET':
             case 'TRACE':
             case 'CONNECT':
@@ -79,9 +82,10 @@ class RequestListener
     /**
      * To get a new instance bridge, by cloning, to handle the new request from ReactPHP.
      *
-     * @param ReactRequest $request
+     * @param ReactRequest  $request
      * @param ReactResponse $response
-     * @param string $method
+     * @param string        $method
+     *
      * @return RequestBridge
      */
     private function getRequestBridge(ReactRequest $request, ReactResponse $response, string $method): RequestBridge
@@ -96,6 +100,7 @@ class RequestListener
      * To run directly the bridge with request without body (like GET request).
      *
      * @param RequestBridge $bridge
+     *
      * @return RequestListener
      */
     private function runRequestWithNoBody(RequestBridge $bridge): RequestListener
@@ -108,9 +113,10 @@ class RequestListener
     /**
      * To register the bridge to be executed on data event.
      *
-     * @param ReactRequest $request
+     * @param ReactRequest  $request
      * @param ReactResponse $response
      * @param RequestBridge $bridge
+     *
      * @return RequestListener
      */
     private function runRequestWithBody(
@@ -133,8 +139,9 @@ class RequestListener
      * Event executed on request event emited by ReactPHP to execute directly request without body (like GET requests)
      * or register the bridge to be executed on data event.
      *
-     * @param ReactRequest $request
+     * @param ReactRequest  $request
      * @param ReactResponse $response
+     *
      * @return self
      */
     public function __invoke(ReactRequest $request, ReactResponse $response)
@@ -152,7 +159,6 @@ class RequestListener
                 $response->writeHead(500);
                 $response->end('Request not managed');
             }
-
         } else {
             $this->runRequestWithNoBody($bridge);
         }

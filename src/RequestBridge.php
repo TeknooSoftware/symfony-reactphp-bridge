@@ -45,7 +45,7 @@ class RequestBridge
     private $kernel;
 
     /**
-     * Attributes for Symfony requests
+     * Attributes for Symfony requests.
      *
      * @var array
      */
@@ -68,10 +68,11 @@ class RequestBridge
 
     /**
      * RequestBridge constructor.
+     *
      * @param KernelInterface $kernel
-     * @param array $requestAttributes
+     * @param array           $requestAttributes
      */
-    public function __construct(KernelInterface $kernel, array $requestAttributes=[])
+    public function __construct(KernelInterface $kernel, array $requestAttributes = [])
     {
         $this->kernel = $kernel;
         $this->requestAttributes = $requestAttributes;
@@ -79,11 +80,12 @@ class RequestBridge
 
     /**
      * To initialize this bridge with ReactPHP Request and Response and the HTTP Method of the current request.
-     * Needed to execute this object
+     * Needed to execute this object.
      *
-     * @param ReactRequest $request
+     * @param ReactRequest  $request
      * @param ReactResponse $response
-     * @param string $method
+     * @param string        $method
+     *
      * @return RequestBridge
      */
     public function handle(ReactRequest $request, ReactResponse $response, string $method): RequestBridge
@@ -99,6 +101,7 @@ class RequestBridge
      * To extract into an array the body formatted content. If the body is empty, the method return an empty array.
      *
      * @param string|null $content
+     *
      * @return array
      */
     private function getParsedContent($content)
@@ -114,10 +117,11 @@ class RequestBridge
     }
 
     /**
-     * If the Kernel support Terminate behavior, execute it
+     * If the Kernel support Terminate behavior, execute it.
      *
-     * @param SymfonyRequest $request
+     * @param SymfonyRequest  $request
      * @param SymfonyResponse $response
+     *
      * @return self
      */
     private function terminate(SymfonyRequest $request, SymfonyResponse $response): RequestBridge
@@ -133,14 +137,15 @@ class RequestBridge
      * Prepare the Symfony request from the ReactPHP request.
      * $_FILES is currently not supported
      * $_COOKIES is currently not supported
-     * Simulate $_SERVER
+     * Simulate $_SERVER.
      *
-     * @param array $query
-     * @param array $bodyParsed
+     * @param array       $query
+     * @param array       $bodyParsed
      * @param string|null $rawContent
+     *
      * @return SymfonyRequest
      */
-    private function getSymfonyRequest(array $query, array $bodyParsed, string $rawContent=null): SymfonyRequest
+    private function getSymfonyRequest(array $query, array $bodyParsed, string $rawContent = null): SymfonyRequest
     {
         $headers = $this->reactRequest->getHeaders();
 
@@ -192,9 +197,10 @@ class RequestBridge
      * Request and execute it with Symfony before send result to ReactPHP.
      *
      * @param string|null $content
+     *
      * @return self
      */
-    public function __invoke(string $content=null): RequestBridge
+    public function __invoke(string $content = null): RequestBridge
     {
         $this->checkRequirements();
 
@@ -211,14 +217,12 @@ class RequestBridge
                 $sfResponse->getStatusCode(),
                 $sfResponse->headers->all()
             );
-            
+
             $this->reactResponse->end($sfResponse->getContent());
             $this->terminate($sfRequest, $sfResponse);
-
         } catch (NotFoundHttpException $e) {
             $this->reactResponse->writeHead($e->getStatusCode(), $e->getHeaders());
             $this->reactResponse->end($e->getMessage());
-
         } catch (\Throwable $e) {
             $this->reactResponse->writeHead(500);
             $this->reactResponse->end($e->getMessage());
