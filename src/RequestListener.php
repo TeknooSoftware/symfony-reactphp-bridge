@@ -57,6 +57,8 @@ class RequestListener
      * @return string
      *
      * @throws \RuntimeException
+     *
+     * @SuppressWarnings(PHPMD)
      */
     private function getMethod(ReactRequest $request)
     {

@@ -144,6 +144,8 @@ class RequestBridge
      * @param string|null $rawContent
      *
      * @return SymfonyRequest
+     *
+     * @SuppressWarnings(PHPMD)
      */
     private function getSymfonyRequest(array $query, array $bodyParsed, string $rawContent = null): SymfonyRequest
     {
