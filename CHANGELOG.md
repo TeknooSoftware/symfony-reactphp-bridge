@@ -1,5 +1,9 @@
 #Teknoo Software - Symfony bridge for React PHP
 
+##[0.0.1-alpha2] - 2017-03-05
+###Added
+- Add a Symfony command
+
 ##[0.0.1-alpha1] - 2017-03-04
 ###Added
 - First alpha release
