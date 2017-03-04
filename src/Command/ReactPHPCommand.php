@@ -75,8 +75,20 @@ class ReactPHPCommand extends ContainerAwareCommand
     {
         $this->setName('reactphp:run');
         $this->setDescription('To create easily a ReactPHP Server with Symfony');
-        $this->addOption('interface', 'i', InputOption::VALUE_OPTIONAL, 'To set the TCP interface listened by ReactPHP', '0.0.0.0');
-        $this->addOption('port', 'p', InputOption::VALUE_OPTIONAL, 'To set the TCP port listened by ReactPHP', '80');
+        $this->addOption(
+            'interface',
+            'i',
+            InputOption::VALUE_OPTIONAL,
+            'To set the TCP interface listened by ReactPHP',
+            '0.0.0.0'
+        );
+        $this->addOption(
+            'port',
+            'p',
+            InputOption::VALUE_OPTIONAL,
+            'To set the TCP port listened by ReactPHP',
+            '80'
+        );
     }
 
     /**
