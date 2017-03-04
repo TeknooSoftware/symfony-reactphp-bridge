@@ -32,7 +32,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Teknoo\ReactPHPBundle\Bridge\RequestListener;
 
 /**
- * Class ReactPHPCommand
+ * Class ReactPHPCommand.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -55,9 +55,10 @@ class ReactPHPCommand extends ContainerAwareCommand
 
     /**
      * ReactPHPCommand constructor.
+     *
      * @param RequestListener $requestListener
-     * @param LoopInterface $loop
-     * @param string|null $name The name of the command; passing null means it must be set in configure()
+     * @param LoopInterface   $loop
+     * @param string|null     $name            The name of the command; passing null means it must be set in configure()
      *
      * @throws \LogicException When the command name is empty
      */
