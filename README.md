@@ -7,6 +7,17 @@ To install this library with composer, run this command :
 
     composer require teknoo/reactphp-symfony
 
+Execution
+---------
+
+Via the Symfony Console :
+
+    #Env prod
+    bin/console reactphp:run -i 0.0.0.0 -p 8080
+
+    #End dev
+    bin/console reactphp:run -i 0.0.0.0 -p 8080 -e dev
+
 In your ReactPHP main file :
 
     #!/usr/bin/env php
@@ -15,8 +26,8 @@ In your ReactPHP main file :
     use React\EventLoop\Factory;
     use React\Socket\Server as SocketServer;
     use React\Http\Server as HttpServer;
-    use Teknoo\ReactPHPBundle\RequestBridge;
-    use Teknoo\ReactPHPBundle\RequestListener;
+    use Teknoo\ReactPHPBundle\Bridge\RequestBridge;
+    use Teknoo\ReactPHPBundle\Bridge\RequestListener;
 
     require __DIR__.'/../app/autoload.php';
     if (\file_exists(__DIR__.'/../var/bootstrap.php.cache')) {
