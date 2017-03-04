@@ -25,3 +25,5 @@ services:
     arguments:
       - "@teknoo.reactphp_bridge.request_listener"
       - "@teknoo.reactphp_bridge.vendor.loop"
+    tags:
+      - { name: console.command }
