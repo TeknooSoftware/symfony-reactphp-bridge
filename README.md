@@ -1,12 +1,40 @@
 Teknoo Software - ReactPHP Symfony Bridge
 =========================================
 
-
 Installation & Requirements
 ---------------------------
 To install this library with composer, run this command :
 
     composer require teknoo/reactphp-symfony
+
+In your ReactPHP main file :
+
+    #!/usr/bin/env php
+    <?php
+
+    use React\EventLoop\Factory;
+    use React\Socket\Server as SocketServer;
+    use React\Http\Server as HttpServer;
+    use Teknoo\ReactPHP\Symfony\RequestBridge;
+    use Teknoo\ReactPHP\Symfony\RequestListener;
+
+    require __DIR__.'/../app/autoload.php';
+    if (\file_exists(__DIR__.'/../var/bootstrap.php.cache')) {
+        include_once __DIR__ . '/../var/bootstrap.php.cache';
+    }
+
+    $kernel = new AppKernel('prod', false);
+    $kernel->loadClassCache();
+
+    $requestBridge = new RequestBridge($kernel);
+    $requestListener = new RequestListener($requestBridge);
+
+    $loop = Factory::create();
+    $socket = new SocketServer('0.0.0.0:8080', $loop);
+    $http = new HttpServer($socket);
+
+    $http->on('request', $requestListener);
+    $loop->run();
 
 This library requires :
 
@@ -14,7 +42,6 @@ This library requires :
     * Composer
     * Symfony 3.2+
     * ReactPHP 0.5+
-
 
 Credits
 -------
