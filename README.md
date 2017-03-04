@@ -7,6 +7,13 @@ To install this library with composer, run this command :
 
     composer require teknoo/reactphp-symfony
 
+This library requires :
+
+    * PHP 7+
+    * Composer
+    * Symfony 3.2+
+    * ReactPHP 0.5+
+
 Execution
 ---------
 
@@ -18,7 +25,7 @@ Via the Symfony Console :
     #End dev
     bin/console reactphp:run -i 0.0.0.0 -p 8080 -e dev
 
-In your ReactPHP main file :
+Via a PHP file :
 
     #!/usr/bin/env php
     <?php
@@ -46,13 +53,6 @@ In your ReactPHP main file :
 
     $http->on('request', $requestListener);
     $loop->run();
-
-This library requires :
-
-    * PHP 7+
-    * Composer
-    * Symfony 3.2+
-    * ReactPHP 0.5+
 
 Credits
 -------
