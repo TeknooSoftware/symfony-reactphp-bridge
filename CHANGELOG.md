@@ -3,6 +3,7 @@
 ##[0.0.1-alpha2] - 2017-03-05
 ###Added
 - Add a Symfony command
+- Transform to bundle to manage the Symfony command
 
 ##[0.0.1-alpha1] - 2017-03-04
 ###Added
