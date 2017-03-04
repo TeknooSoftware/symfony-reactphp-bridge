@@ -20,30 +20,33 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHP\Symfony;
+namespace Teknoo\ReactPHPBundle\Command;
 
 use React\EventLoop\LoopInterface;
 use React\Socket\Server as SocketServer;
 use React\Http\Server as HttpServer;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpKernel\KernelInterface;
+use Teknoo\ReactPHPBundle\Bridge\RequestListener;
 
 /**
  * Class ReactPHPCommand
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
+ *
+ * @link        http://teknoo.software/symfony-react Project website
+ *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
-class ReactPHPCommand extends Command
+class ReactPHPCommand extends ContainerAwareCommand
 {
     /**
-     * @var KernelInterface
+     * @var RequestListener
      */
-    private $kernel;
+    private $requestListener;
 
     /**
      * @var LoopInterface
@@ -52,15 +55,15 @@ class ReactPHPCommand extends Command
 
     /**
      * ReactPHPCommand constructor.
-     * @param KernelInterface $kernel
+     * @param RequestListener $requestListener
      * @param LoopInterface $loop
      * @param string|null $name The name of the command; passing null means it must be set in configure()
      *
      * @throws \LogicException When the command name is empty
      */
-    public function __construct(KernelInterface $kernel, LoopInterface $loop, string $name = null)
+    public function __construct(RequestListener $requestListener, LoopInterface $loop, string $name = null)
     {
-        $this->kernel = $kernel;
+        $this->requestListener = $requestListener;
         $this->loop = $loop;
         parent::__construct($name);
     }
@@ -81,14 +84,11 @@ class ReactPHPCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $requestBridge = new RequestBridge($this->kernel);
-        $requestListener = new RequestListener($requestBridge);
-
         $listenedInterface = $input->getOption('interface').':'.$input->getOption('port');
         $socket = new SocketServer($listenedInterface, $this->loop);
         $http = new HttpServer($socket);
 
-        $http->on('request', $requestListener);
+        $http->on('request', $this->requestListener);
         $this->loop->run();
     }
 }

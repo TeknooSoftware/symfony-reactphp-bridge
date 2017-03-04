@@ -20,35 +20,32 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\Tests\ReactPHP\Symfony;
+namespace Teknoo\Tests\ReactPHPBundle;
 
 use React\EventLoop\LoopInterface;
-use React\Http\Request;
-use React\Http\Response;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Kernel;
-use Symfony\Component\HttpKernel\KernelInterface;
-use Teknoo\ReactPHP\Symfony\ReactPHPCommand;
-use Teknoo\ReactPHP\Symfony\RequestBridge;
+use Teknoo\ReactPHPBundle\Bridge\RequestListener;
+use Teknoo\ReactPHPBundle\Command\ReactPHPCommand;
 
 /**
  * Class RequestBridgeTest.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
+ *
+ * @link        http://teknoo.software/symfony-react Project website
+ *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  *
- * @covers \Teknoo\ReactPHP\Symfony\ReactPHPCommand
+ * @covers \Teknoo\ReactPHPBundle\Command\ReactPHPCommand
  */
 class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var KernelInterface
+     * @var RequestListener
      */
-    private $kernel;
+    private $requestListener;
 
     /**
      * @var LoopInterface
@@ -56,15 +53,15 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
     private $loop;
 
     /**
-     * @return KernelInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @return RequestListener|\PHPUnit_Framework_MockObject_MockObject
      */
-    public function getKernel(): KernelInterface
+    public function getRequestListener(): RequestListener
     {
-        if (!$this->kernel instanceof KernelInterface) {
-            $this->kernel = $this->createMock(KernelInterface::class);
+        if (!$this->requestListener instanceof RequestListener) {
+            $this->requestListener = $this->createMock(RequestListener::class);
         }
 
-        return $this->kernel;
+        return $this->requestListener;
     }
 
     /**
@@ -81,7 +78,7 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
 
     public function buildCommand()
     {
-        return new ReactPHPCommand($this->getKernel(), $this->loop);
+        return new ReactPHPCommand($this->getRequestListener(), $this->loop);
     }
 
     public function testRun()

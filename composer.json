@@ -14,12 +14,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "Teknoo\\ReactPHP\\Symfony\\": "src/"
+            "Teknoo\\ReactPHPBundle\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Teknoo\\Tests\\ReactPHP\\Symfony\\": "tests/"
+            "Teknoo\\Tests\\ReactPHPBundle\\": "tests/"
         }
     },
     "require": {

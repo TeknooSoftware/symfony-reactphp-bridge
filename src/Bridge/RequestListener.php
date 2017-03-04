@@ -20,7 +20,7 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHP\Symfony;
+namespace Teknoo\ReactPHPBundle\Bridge;
 
 use React\Http\Request as ReactRequest;
 use React\Http\Response as ReactResponse;
@@ -29,6 +29,9 @@ use React\Http\Response as ReactResponse;
  * Class RequestListener.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
+ *
+ * @link        http://teknoo.software/symfony-react Project website
+ *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */

@@ -20,7 +20,7 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\Tests\ReactPHP\Symfony;
+namespace Teknoo\Tests\ReactPHPBundle\Bridge;
 
 use React\Http\Request;
 use React\Http\Response;
@@ -28,16 +28,19 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Teknoo\ReactPHP\Symfony\RequestBridge;
+use Teknoo\ReactPHPBundle\Bridge\RequestBridge;
 
 /**
  * Class RequestBridgeTest.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
+ *
+ * @link        http://teknoo.software/symfony-react Project website
+ *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  *
- * @covers \Teknoo\ReactPHP\Symfony\RequestBridge
+ * @covers \Teknoo\ReactPHPBundle\Bridge\RequestBridge
  */
 class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 {

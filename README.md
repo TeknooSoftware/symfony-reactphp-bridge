@@ -15,8 +15,8 @@ In your ReactPHP main file :
     use React\EventLoop\Factory;
     use React\Socket\Server as SocketServer;
     use React\Http\Server as HttpServer;
-    use Teknoo\ReactPHP\Symfony\RequestBridge;
-    use Teknoo\ReactPHP\Symfony\RequestListener;
+    use Teknoo\ReactPHPBundle\RequestBridge;
+    use Teknoo\ReactPHPBundle\RequestListener;
 
     require __DIR__.'/../app/autoload.php';
     if (\file_exists(__DIR__.'/../var/bootstrap.php.cache')) {

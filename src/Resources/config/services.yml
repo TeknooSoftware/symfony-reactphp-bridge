@@ -1,0 +1,27 @@
+#src/Resources/config/services.yml
+parameters:
+  teknoo.reactphp_bridge.request_bridge.class: 'Teknoo\ReactPHPBundle\Bridge\RequestBridge'
+  teknoo.reactphp_bridge.request_listener.class: 'Teknoo\ReactPHPBundle\Bridge\RequestListener'
+  teknoo.reactphp_bridge.command.class: 'Teknoo\ReactPHPBundle\Command\ReactPHPCommand'
+  teknoo.reactphp_bridge.vendor.loop.class: 'React\EventLoop\LoopInterface'
+
+services:
+  teknoo.reactphp_bridge.request_bridge:
+    class: "%teknoo.reactphp_bridge.request_bridge.class%"
+    arguments:
+      - "@kernel"
+
+  teknoo.reactphp_bridge.request_listener:
+    class: "%teknoo.reactphp_bridge.request_listener.class%"
+    arguments:
+      - "@teknoo.reactphp_bridge.request_bridge"
+
+  teknoo.reactphp_bridge.vendor.loop:
+    class: "%teknoo.reactphp_bridge.vendor.loop.class%"
+    factory: ['React\EventLoop\Factory', 'create']
+
+  teknoo.reactphp_bridge.command:
+    class: "%teknoo.reactphp_bridge.command.class%"
+    arguments:
+      - "@teknoo.reactphp_bridge.request_listener"
+      - "@teknoo.reactphp_bridge.vendor.loop"
