@@ -24,6 +24,7 @@ namespace Teknoo\Tests\ReactPHPBundle\Bridge;
 
 use React\Http\Request;
 use React\Http\Response;
+use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Kernel;
@@ -445,5 +446,15 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $bridge = $bridge->handle($request, $response, 'POST');
         self::assertInstanceOf(RequestBridge::class, $bridge);
         self::assertInstanceOf(RequestBridge::class, $bridge(\http_build_query(['foo'=>'bar'])));
+    }
+
+    public function testCloneKernel()
+    {
+        $requestBridge = clone $this->buildRequestBridge();
+        self::assertInstanceOf(RequestBridge::class, $requestBridge);
+
+        $rProperty = new \ReflectionProperty(RequestBridge::class, 'kernel');
+        $rProperty->setAccessible(true);
+        self::assertNotSame($rProperty->getValue($requestBridge), $this->getKernel());
     }
 }

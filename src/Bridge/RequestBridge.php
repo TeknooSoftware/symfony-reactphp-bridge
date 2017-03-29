@@ -198,6 +198,14 @@ class RequestBridge
     }
 
     /**
+     * Magic method to clone the Symfony Kernel when this RequestBridge instance is cloned by the listener
+     */
+    public function __clone()
+    {
+        $this->kernel = clone $this->kernel;
+    }
+
+    /**
      * Called by the RequestListener or when ReactPHP emit the data event to convert the ReactPHP Request to a Symfony
      * Request and execute it with Symfony before send result to ReactPHP.
      *
