@@ -1,5 +1,9 @@
 #Teknoo Software - Symfony bridge for React PHP
 
+##[0.0.1-alpha3] - 2017-03-29
+###Fixed
+- Enable deep cloning into RequestBridge class to avoid Symfony's Kernel sharing betwin requests. Fix #1
+
 ##[0.0.1-alpha2] - 2017-03-05
 ###Added
 - Add a Symfony command
