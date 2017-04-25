@@ -1,5 +1,9 @@
 #Teknoo Software - Symfony bridge for React PHP
 
+##[0.0.1-alpha4] - 2017-0
+###Fixed
+- RequestListener supports header Content Type value as array from React.
+
 ##[0.0.1-alpha3] - 2017-03-29
 ###Fixed
 - Enable deep cloning into RequestBridge class to avoid Symfony's Kernel sharing betwin requests. Fix #1

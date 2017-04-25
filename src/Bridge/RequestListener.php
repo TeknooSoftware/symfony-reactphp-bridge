@@ -157,8 +157,12 @@ class RequestListener
         $bridge = $this->getRequestBridge($request, $response, $method);
 
         if (\in_array($method, ['POST', 'PUT', 'DELETE', 'PATCH'])) {
-            if (isset($headers['Content-Type'])
-            && (0 === \strpos($headers['Content-Type'], 'application/x-www-form-urlencoded'))) {
+            $contentType = '';
+            if (isset($headers['Content-Type'])) {
+                $contentType = \implode(' ', (array) $headers['Content-Type']);
+            }
+
+            if (false !== \strpos($contentType, 'application/x-www-form-urlencoded')) {
                 $this->runRequestWithBody($request, $response, $bridge);
             } else {
                 $response->writeHead(500);
