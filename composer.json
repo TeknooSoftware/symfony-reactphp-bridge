@@ -24,8 +24,8 @@
     },
     "require": {
         "php": ">=7.0",
-        "symfony/symfony": "~3.2",
-        "symfony/console": "~3.2",
+        "symfony/symfony": "~3.0",
+        "symfony/console": "~3.0",
         "react/http": "~0.5"
     },
     "require-dev": {
