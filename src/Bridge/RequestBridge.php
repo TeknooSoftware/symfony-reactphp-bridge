@@ -22,6 +22,7 @@
 
 namespace Teknoo\ReactPHPBundle\Bridge;
 
+use Psr\Log\LoggerInterface;
 use React\Http\Request as ReactRequest;
 use React\Http\Response as ReactResponse;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -29,6 +30,7 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\TerminableInterface;
+use Teknoo\ReactPHPBundle\Service\DatesService;
 
 /**
  * Class RequestBridge.
@@ -70,15 +72,44 @@ class RequestBridge
     private $method;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var DatesService
+     */
+    private $datesService;
+
+    /**
      * RequestBridge constructor.
      *
      * @param KernelInterface $kernel
+     * @param DatesService    $datesService
      * @param array           $requestAttributes
      */
-    public function __construct(KernelInterface $kernel, array $requestAttributes = [])
-    {
+    public function __construct(
+        KernelInterface $kernel,
+        DatesService $datesService,
+        array $requestAttributes = []
+    ) {
         $this->kernel = $kernel;
+        $this->datesService = $datesService;
         $this->requestAttributes = $requestAttributes;
+    }
+
+    /**
+     * To register a logger into the bridge to register request summary and errors
+     *
+     * @param LoggerInterface $logger
+     *
+     * @return self
+     */
+    public function setLogger(LoggerInterface $logger): RequestBridge
+    {
+        $this->logger = $logger;
+
+        return $this;
     }
 
     /**
@@ -158,6 +189,7 @@ class RequestBridge
             $_SERVER,
             [
                 'REQUEST_URI' => $this->reactRequest->getPath(),
+                'REMOTE_ADDR' => $this->reactRequest->remoteAddress
             ]
         );
 
@@ -206,6 +238,60 @@ class RequestBridge
     }
 
     /**
+     * To add in the log system the result of the request, following the log format defined for Apache HTTP.
+     * If no logger has been defined, this operation is ignored.
+     *
+     * @param SymfonyRequest $request
+     * @param SymfonyResponse $response
+     */
+    private function logRequest(SymfonyRequest $request, SymfonyResponse $response)
+    {
+        if (!$this->logger instanceof LoggerInterface) {
+            return;
+        }
+
+        $date = $this->datesService->getNow();
+
+        $message = \sprintf(
+            '%s - [%s] "%s %s" %s %s',
+            $request->getClientIp(),
+            $date->format('d/M/Y H:i:s O'),
+            $request->getRealMethod(),
+            $request->getUri(),
+            $response->getStatusCode(),
+            \strlen($response->getContent())
+        );
+
+        $this->logger->info($message);
+    }
+
+    /**
+     * To add in the log system an error durring the request.
+     * If no logger has been defined, this operation is ignored.
+     *
+     * @param \Throwable $e
+     */
+    private function logError(\Throwable $e)
+    {
+        if (!$this->logger instanceof LoggerInterface) {
+            return;
+        }
+
+        $date = $this->datesService->getNow();
+
+        $message = \sprintf(
+            '%s - [%] %s in %s (%s)',
+            $this->reactRequest->remoteAddress,
+            $date->format('d/M/Y H:i:s O'),
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine()
+        );
+
+        $this->logger->error($message);
+    }
+
+    /**
      * Called by the RequestListener or when ReactPHP emit the data event to convert the ReactPHP Request to a Symfony
      * Request and execute it with Symfony before send result to ReactPHP.
      *
@@ -233,12 +319,16 @@ class RequestBridge
 
             $this->reactResponse->end($sfResponse->getContent());
             $this->terminate($sfRequest, $sfResponse);
+
+            $this->logRequest($sfRequest, $sfResponse);
         } catch (NotFoundHttpException $e) {
             $this->reactResponse->writeHead($e->getStatusCode(), $e->getHeaders());
             $this->reactResponse->end($e->getMessage());
         } catch (\Throwable $e) {
             $this->reactResponse->writeHead(500);
             $this->reactResponse->end($e->getMessage());
+
+            $this->logError($e);
         }
 
         return $this;

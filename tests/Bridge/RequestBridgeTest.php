@@ -22,14 +22,15 @@
 
 namespace Teknoo\Tests\ReactPHPBundle\Bridge;
 
+use Psr\Log\LoggerInterface;
 use React\Http\Request;
 use React\Http\Response;
-use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Teknoo\ReactPHPBundle\Bridge\RequestBridge;
+use Teknoo\ReactPHPBundle\Service\DatesService;
 
 /**
  * Class RequestBridgeTest.
@@ -51,6 +52,16 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     private $kernel;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var DatesService
+     */
+    private $datesService;
+
+    /**
      * @return KernelInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     public function getKernel(): KernelInterface
@@ -63,11 +74,35 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @return LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function getLogger(): LoggerInterface
+    {
+        if (!$this->logger instanceof LoggerInterface) {
+            $this->logger = $this->createMock(LoggerInterface::class);
+        }
+
+        return $this->logger;
+    }
+
+    /**
+     * @return DatesService|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function getDatesService(): DatesService
+    {
+        if (!$this->datesService instanceof DatesService) {
+            $this->datesService = $this->createMock(DatesService::class);
+        }
+
+        return $this->datesService;
+    }
+
+    /**
      * @return RequestBridge
      */
     public function buildRequestBridge()
     {
-        return new RequestBridge($this->getKernel(), ['attr'=>1]);
+        return new RequestBridge($this->getKernel(), $this->getDatesService(), ['attr'=>1]);
     }
 
     /**
@@ -84,7 +119,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -114,7 +149,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo2'=>'bar2']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -144,7 +179,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -172,7 +207,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo2'=>'bar2']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -200,7 +235,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -228,7 +263,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo2'=>'bar2']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -252,11 +287,97 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestBridge::class, $bridge(\http_build_query(['foo'=>'bar'])));
     }
 
+    public function testWithNoBodyNoTerminateKernelErrorWithLogger()
+    {
+        $request = $this->createMock(Request::class);
+        $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
+        $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
+        $request->remoteAddress = '123.123.123.123';
+
+        $response = $this->createMock(Response::class);
+        $response->expects(self::once())->method('writeHead')->with(500, []);
+        $response->expects(self::once())->method('end')->with('Error');
+
+        $sfResponse = $this->createMock(\Symfony\Component\HttpFoundation\Response::class);
+        $sfResponse->expects(self::never())->method('getContent');
+        $sfResponse->expects(self::never())->method('getStatusCode');
+
+        $this->getKernel()
+            ->expects(self::once())
+            ->method('handle')
+            ->with($this->callback(function($a){return $a instanceof \Symfony\Component\HttpFoundation\Request;}))
+            ->willThrowException(new \Exception('Error'));
+
+        $date = new \DateTime('2017-04-27 14:13:12');
+        $this->getDatesService()
+            ->expects(self::once())
+            ->method('getNow')
+            ->willReturn($date);
+
+        $this->getLogger()
+            ->expects(self::once())
+            ->method('error')
+            ->with($this->callback(
+                function ($message) {return 0 === strpos($message, '123.123.123.123 - [ Error in'); }
+            ));
+
+        $bridge = $this->buildRequestBridge();
+        $bridge->setLogger($this->getLogger());
+
+        $bridge = $bridge->handle($request, $response, 'GET');
+        self::assertInstanceOf(RequestBridge::class, $bridge);
+        self::assertInstanceOf(RequestBridge::class, $bridge());
+    }
+
+    public function testWithBodyNoTerminateKernelErrorWithLogger()
+    {
+        $request = $this->createMock(Request::class);
+        $request->expects(self::any())->method('getQueryParams')->willReturn(['foo2'=>'bar2']);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
+        $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
+        $request->remoteAddress = '123.123.123.123';
+
+        $response = $this->createMock(Response::class);
+        $response->expects(self::once())->method('writeHead')->with(500, []);
+        $response->expects(self::once())->method('end')->with('Error');
+
+        $sfResponse = $this->createMock(\Symfony\Component\HttpFoundation\Response::class);
+        $sfResponse->expects(self::never())->method('getContent');
+        $sfResponse->expects(self::never())->method('getStatusCode');
+
+        $this->getKernel()
+            ->expects(self::once())
+            ->method('handle')
+            ->with($this->callback(function($a){return $a instanceof \Symfony\Component\HttpFoundation\Request;}))
+            ->willThrowException(new \Exception('Error'));
+
+        $date = new \DateTime('2017-04-27 14:13:12');
+        $this->getDatesService()
+            ->expects(self::once())
+            ->method('getNow')
+            ->willReturn($date);
+
+        $this->getLogger()
+            ->expects(self::once())
+            ->method('error')
+            ->with($this->callback(
+                function ($message) {return 0 === strpos($message, '123.123.123.123 - [ Error in'); }
+            ));
+
+        $bridge = $this->buildRequestBridge();
+        $bridge->setLogger($this->getLogger());
+
+        $bridge = $bridge->handle($request, $response, 'POST');
+        self::assertInstanceOf(RequestBridge::class, $bridge);
+        self::assertInstanceOf(RequestBridge::class, $bridge(\http_build_query(['foo'=>'bar'])));
+    }
+
     public function testWithNoBodyTerminateKernel()
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -264,8 +385,8 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $response->expects(self::once())->method('end')->with('fooBar');
 
         $sfResponse = $this->createMock(\Symfony\Component\HttpFoundation\Response::class);
-        $sfResponse->expects(self::once())->method('getContent')->willReturn('fooBar');
-        $sfResponse->expects(self::once())->method('getStatusCode')->willReturn(200);
+        $sfResponse->expects(self::any())->method('getContent')->willReturn('fooBar');
+        $sfResponse->expects(self::any())->method('getStatusCode')->willReturn(200);
         $sfResponse->headers = $this->createMock(ParameterBag::class);
         $sfResponse->headers->expects(self::any())->method('all')->willReturn([]);
 
@@ -273,6 +394,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::once())
             ->method('terminate');
+
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
@@ -290,7 +412,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo2'=>'bar2']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -298,8 +420,8 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $response->expects(self::once())->method('end')->with('fooBar');
 
         $sfResponse = $this->createMock(\Symfony\Component\HttpFoundation\Response::class);
-        $sfResponse->expects(self::once())->method('getContent')->willReturn('fooBar');
-        $sfResponse->expects(self::once())->method('getStatusCode')->willReturn(200);
+        $sfResponse->expects(self::any())->method('getContent')->willReturn('fooBar');
+        $sfResponse->expects(self::any())->method('getStatusCode')->willReturn(200);
         $sfResponse->headers = $this->createMock(ParameterBag::class);
         $sfResponse->headers->expects(self::any())->method('all')->willReturn([]);
 
@@ -307,6 +429,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::once())
             ->method('terminate');
+
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
@@ -320,11 +443,107 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestBridge::class, $bridge(\http_build_query(['foo'=>'bar'])));
     }
 
+    public function testWithNoBodyTerminateKernelWithLogger()
+    {
+        $request = $this->createMock(Request::class);
+        $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
+        $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
+        $request->remoteAddress = '123.123.123.123';
+
+        $response = $this->createMock(Response::class);
+        $response->expects(self::once())->method('writeHead')->with(200, []);
+        $response->expects(self::once())->method('end')->with('fooBar');
+
+        $sfResponse = $this->createMock(\Symfony\Component\HttpFoundation\Response::class);
+        $sfResponse->expects(self::any())->method('getContent')->willReturn('fooBar');
+        $sfResponse->expects(self::any())->method('getStatusCode')->willReturn(200);
+        $sfResponse->headers = $this->createMock(ParameterBag::class);
+        $sfResponse->headers->expects(self::any())->method('all')->willReturn([]);
+
+        $this->kernel = $this->createMock(Kernel::class);
+        $this->getKernel()
+            ->expects(self::once())
+            ->method('terminate');
+
+        $this->getKernel()
+            ->expects(self::once())
+            ->method('handle')
+            ->with($this->callback(function($a){return $a instanceof \Symfony\Component\HttpFoundation\Request;}))
+            ->willReturn($sfResponse);
+
+        $date = new \DateTime('2017-04-27 14:13:12');
+        $this->getDatesService()
+            ->expects(self::once())
+            ->method('getNow')
+            ->willReturn($date);
+
+        $this->getLogger()
+            ->expects(self::once())
+            ->method('info')
+            ->with('123.123.123.123 - [27/Apr/2017 14:13:12 +0000] "GET http://hello.world/v1/endpoint" 200 6');
+
+        $bridge = $this->buildRequestBridge();
+        $bridge->setLogger($this->getLogger());
+
+        $bridge = $bridge->handle($request, $response, 'GET');
+        self::assertInstanceOf(RequestBridge::class, $bridge);
+        self::assertInstanceOf(RequestBridge::class, $bridge());
+    }
+
+    public function testWithBodyTerminateKernelWithLogger()
+    {
+        $request = $this->createMock(Request::class);
+        $request->expects(self::any())->method('getQueryParams')->willReturn(['foo2'=>'bar2']);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
+        $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
+        $request->remoteAddress = '123.123.123.123';
+
+        $response = $this->createMock(Response::class);
+        $response->expects(self::once())->method('writeHead')->with(200, []);
+        $response->expects(self::once())->method('end')->with('fooBar');
+
+        $sfResponse = $this->createMock(\Symfony\Component\HttpFoundation\Response::class);
+        $sfResponse->expects(self::any())->method('getContent')->willReturn('fooBar');
+        $sfResponse->expects(self::any())->method('getStatusCode')->willReturn(200);
+        $sfResponse->headers = $this->createMock(ParameterBag::class);
+        $sfResponse->headers->expects(self::any())->method('all')->willReturn([]);
+
+        $this->kernel = $this->createMock(Kernel::class);
+        $this->getKernel()
+            ->expects(self::once())
+            ->method('terminate');
+
+        $this->getKernel()
+            ->expects(self::once())
+            ->method('handle')
+            ->with($this->callback(function($a){return $a instanceof \Symfony\Component\HttpFoundation\Request;}))
+            ->willReturn($sfResponse);
+
+        $date = new \DateTime('2017-04-27 14:13:12');
+        $this->getDatesService()
+            ->expects(self::once())
+            ->method('getNow')
+            ->willReturn($date);
+
+        $this->getLogger()
+            ->expects(self::once())
+            ->method('info')
+            ->with('123.123.123.123 - [27/Apr/2017 14:13:12 +0000] "POST http://hello.world/v1/endpoint" 200 6');
+
+        $bridge = $this->buildRequestBridge();
+        $bridge->setLogger($this->getLogger());
+
+        $bridge = $bridge->handle($request, $response, 'POST');
+        self::assertInstanceOf(RequestBridge::class, $bridge);
+        self::assertInstanceOf(RequestBridge::class, $bridge(\http_build_query(['foo'=>'bar'])));
+    }
+
     public function testWithNoBodyTerminateKernelNotFound()
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -339,6 +558,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::never())
             ->method('terminate');
+
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
@@ -356,7 +576,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo2'=>'bar2']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -371,6 +591,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::never())
             ->method('terminate');
+
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
@@ -388,7 +609,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -403,6 +624,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::never())
             ->method('terminate');
+
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
@@ -420,7 +642,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getQueryParams')->willReturn(['foo2'=>'bar2']);
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['http://hello.world']]);
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host'=>['hello.world']]);
         $request->expects(self::any())->method('getPath')->willReturn('/v1/endpoint');
 
         $response = $this->createMock(Response::class);
@@ -435,6 +657,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::never())
             ->method('terminate');
+
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
