@@ -269,9 +269,9 @@ class RequestBridge
      * To add in the log system an error durring the request.
      * If no logger has been defined, this operation is ignored.
      *
-     * @param \Throwable $e
+     * @param \Throwable $error
      */
-    private function logError(\Throwable $e)
+    private function logError(\Throwable $error)
     {
         if (!$this->logger instanceof LoggerInterface) {
             return;
@@ -283,9 +283,9 @@ class RequestBridge
             '%s - [%] %s in %s (%s)',
             $this->reactRequest->remoteAddress,
             $date->format('d/M/Y H:i:s O'),
-            $e->getMessage(),
-            $e->getFile(),
-            $e->getLine()
+            $error->getMessage(),
+            $error->getFile(),
+            $error->getLine()
         );
 
         $this->logger->error($message);
