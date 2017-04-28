@@ -53,6 +53,7 @@ class DatesService
 
     /**
      * @param \DateTime $date
+     *
      * @return DatesService
      */
     public function setNow(\DateTime $date): DatesService

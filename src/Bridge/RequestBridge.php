@@ -99,7 +99,7 @@ class RequestBridge
     }
 
     /**
-     * To register a logger into the bridge to register request summary and errors
+     * To register a logger into the bridge to register request summary and errors.
      *
      * @param LoggerInterface $logger
      *
@@ -189,7 +189,7 @@ class RequestBridge
             $_SERVER,
             [
                 'REQUEST_URI' => $this->reactRequest->getPath(),
-                'REMOTE_ADDR' => $this->reactRequest->remoteAddress
+                'REMOTE_ADDR' => $this->reactRequest->remoteAddress,
             ]
         );
 
@@ -230,7 +230,7 @@ class RequestBridge
     }
 
     /**
-     * Magic method to clone the Symfony Kernel when this RequestBridge instance is cloned by the listener
+     * Magic method to clone the Symfony Kernel when this RequestBridge instance is cloned by the listener.
      */
     public function __clone()
     {
@@ -241,7 +241,7 @@ class RequestBridge
      * To add in the log system the result of the request, following the log format defined for Apache HTTP.
      * If no logger has been defined, this operation is ignored.
      *
-     * @param SymfonyRequest $request
+     * @param SymfonyRequest  $request
      * @param SymfonyResponse $response
      */
     private function logRequest(SymfonyRequest $request, SymfonyResponse $response)
