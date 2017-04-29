@@ -74,6 +74,8 @@ class StdLogger extends AbstractLogger
 
     /**
      * {@inheritdoc}
+     *
+     * @SuppressWarnings(PHPMD)
      */
     public function log($level, $message, array $context = array())
     {
