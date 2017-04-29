@@ -5,13 +5,16 @@ parameters:
   teknoo.reactphp_bridge.command.class: 'Teknoo\ReactPHPBundle\Command\ReactPHPCommand'
   teknoo.reactphp_bridge.vendor.loop.class: 'React\EventLoop\LoopInterface'
   teknoo.reactphp_bridge.service.dates.class: 'Teknoo\ReactPHPBundle\Service\DatesService'
+  teknoo.reactphp_bridge.logger.std_logger.class: 'Teknoo\ReactPHPBundle\Logger\StdLogger'
 
 services:
   teknoo.reactphp_bridge.request_bridge:
     class: "%teknoo.reactphp_bridge.request_bridge.class%"
     arguments:
       - "@kernel"
-      - '@teknoo.reactphp_bridge.service.dates'
+      - "@teknoo.reactphp_bridge.service.dates"
+    calls:
+      - ['setLogger', ["@teknoo.reactphp_bridge.logger.std_logger"]]
 
   teknoo.reactphp_bridge.request_listener:
     class: "%teknoo.reactphp_bridge.request_listener.class%"
@@ -27,8 +30,12 @@ services:
     arguments:
       - "@teknoo.reactphp_bridge.request_listener"
       - "@teknoo.reactphp_bridge.vendor.loop"
+      - "@teknoo.reactphp_bridge.logger.std_logger"
     tags:
       - { name: console.command }
 
   teknoo.reactphp_bridge.service.dates:
     class: "%teknoo.reactphp_bridge.service.dates.class%"
+
+  teknoo.reactphp_bridge.logger.std_logger:
+    class: "%teknoo.reactphp_bridge.logger.std_logger.class%"

@@ -28,8 +28,10 @@ use React\Http\Server as HttpServer;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Teknoo\ReactPHPBundle\Bridge\RequestListener;
+use Teknoo\ReactPHPBundle\Logger\StdLogger;
 
 /**
  * Class ReactPHPCommand.
@@ -54,18 +56,29 @@ class ReactPHPCommand extends ContainerAwareCommand
     private $loop;
 
     /**
+     * @var StdLogger
+     */
+    private $logger;
+
+    /**
      * ReactPHPCommand constructor.
      *
      * @param RequestListener $requestListener
      * @param LoopInterface   $loop
+     * @param StdLogger       $logger
      * @param string|null     $name            The name of the command; passing null means it must be set in configure()
      *
      * @throws \LogicException When the command name is empty
      */
-    public function __construct(RequestListener $requestListener, LoopInterface $loop, string $name = null)
-    {
+    public function __construct(
+        RequestListener $requestListener,
+        LoopInterface $loop,
+        StdLogger $logger,
+        string $name = null
+    ) {
         $this->requestListener = $requestListener;
         $this->loop = $loop;
+        $this->logger = $logger;
         parent::__construct($name);
     }
 
@@ -97,7 +110,13 @@ class ReactPHPCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->logger->setStdOutput($output);
+        if ($output instanceof ConsoleOutputInterface) {
+            $this->logger->setStdError($output->getErrorOutput());
+        }
+
         $listenedInterface = $input->getOption('interface').':'.$input->getOption('port');
+        $output->writeln('Start server on '.$listenedInterface);
         $socket = new SocketServer($listenedInterface, $this->loop);
         $http = new HttpServer($socket);
 

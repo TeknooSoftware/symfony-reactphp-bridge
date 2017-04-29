@@ -24,9 +24,11 @@ namespace Teknoo\Tests\ReactPHPBundle;
 
 use React\EventLoop\LoopInterface;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Teknoo\ReactPHPBundle\Bridge\RequestListener;
 use Teknoo\ReactPHPBundle\Command\ReactPHPCommand;
+use Teknoo\ReactPHPBundle\Logger\StdLogger;
 
 /**
  * Class RequestBridgeTest.
@@ -53,6 +55,11 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
     private $loop;
 
     /**
+     * @var StdLogger
+     */
+    private $logger;
+
+    /**
      * @return RequestListener|\PHPUnit_Framework_MockObject_MockObject
      */
     public function getRequestListener(): RequestListener
@@ -76,9 +83,21 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
         return $this->loop;
     }
 
+    /**
+     * @return StdLogger|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function getLogger(): StdLogger
+    {
+        if (!$this->logger instanceof StdLogger) {
+            $this->logger = $this->createMock(StdLogger::class);
+        }
+
+        return $this->logger;
+    }
+
     public function buildCommand()
     {
-        return new ReactPHPCommand($this->getRequestListener(), $this->loop);
+        return new ReactPHPCommand($this->getRequestListener(), $this->getLoop(), $this->getLogger());
     }
 
     public function testRun()
@@ -101,6 +120,41 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
 
         $this->getLoop()->expects(self::once())->method('run');
 
-        $this->buildCommand()->run($input, $this->createMock(OutputInterface::class));
+        $output = $this->createMock(OutputInterface::class);
+
+        $this->getLogger()->expects(self::once())->method('setStdOutput')->with($output);
+        $this->getLogger()->expects(self::never())->method('setStdError')->with($output);
+
+        $this->buildCommand()->run($input, $output);
+    }
+
+    public function testRunWithError()
+    {
+        $input = $this->createMock(InputInterface::class);
+        $input->expects(self::any())
+            ->method('getOption')
+            ->willReturnCallback(function ($name) {
+                switch ($name) {
+                    case 'interface':
+                        return '0.0.0.0';
+                        break;
+                    case 'port':
+                        return '8012';
+                        break;
+                }
+
+                return '';
+            });
+
+        $this->getLoop()->expects(self::once())->method('run');
+
+        $error = $this->createMock(OutputInterface::class);
+        $output = $this->createMock(ConsoleOutputInterface::class);
+        $output->expects(self::once())->method('getErrorOutput')->willReturn($error);
+
+        $this->getLogger()->expects(self::once())->method('setStdOutput')->with($output);
+        $this->getLogger()->expects(self::once())->method('setStdError')->with($error);
+
+        $this->buildCommand()->run($input, $output);
     }
 }
