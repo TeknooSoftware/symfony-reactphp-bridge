@@ -24,6 +24,7 @@ namespace Teknoo\ReactPHPBundle\Command;
 
 use React\EventLoop\LoopInterface;
 use React\Socket\Server as SocketServer;
+use React\Socket\SecureServer as TlsSocketServer;
 use React\Http\Server as HttpServer;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -89,6 +90,7 @@ class ReactPHPCommand extends ContainerAwareCommand
     {
         $this->setName('reactphp:run');
         $this->setDescription('To create easily a ReactPHP Server with Symfony');
+
         $this->addOption(
             'interface',
             'i',
@@ -96,12 +98,29 @@ class ReactPHPCommand extends ContainerAwareCommand
             'To set the TCP interface listened by ReactPHP',
             '0.0.0.0'
         );
+
         $this->addOption(
             'port',
             'p',
             InputOption::VALUE_OPTIONAL,
             'To set the TCP port listened by ReactPHP',
             '80'
+        );
+
+        $this->addOption(
+            'secure',
+            's',
+            InputOption::VALUE_OPTIONAL,
+            'To enable TLS support, need to pass a local certificate',
+            false
+        );
+
+        $this->addOption(
+            'local-cert',
+            'l',
+            InputOption::VALUE_OPTIONAL,
+            'Locate certificate file for TLS support',
+            false
         );
     }
 
@@ -110,6 +129,7 @@ class ReactPHPCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        //Configure logger
         $this->logger->setStdOutput($output);
         if ($output instanceof ConsoleOutputInterface) {
             $this->logger->setStdError($output->getErrorOutput());
@@ -117,7 +137,27 @@ class ReactPHPCommand extends ContainerAwareCommand
 
         $listenedInterface = $input->getOption('interface').':'.$input->getOption('port');
         $output->writeln('Start server on '.$listenedInterface);
+
+        //Create front socket server
         $socket = new SocketServer($listenedInterface, $this->loop);
+
+        //Enable TLS socker server to encode/decode requests and responses
+        if ($input->getOption('secure')) {
+            $localCert = $input->getOption('local-cert');
+
+            if (empty($localCert) || !\file_exists($localCert)) {
+                $output->getErrorOutput()->writeln('Error, missing local certificate for secure server');
+                return;
+            }
+
+            $socket = new TlsSocketServer(
+                $socket,
+                $this->loop,
+                ['local_cert' => $localCert]
+            );
+        }
+
+        //Enable HTTP server
         $http = new HttpServer($socket);
 
         $http->on('request', $this->requestListener);

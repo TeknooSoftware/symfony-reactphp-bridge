@@ -10,7 +10,7 @@
 ###Added
 - LoggerInterface support in RequestBridge to log request result and errors during execution
 - Logging error and request in RequestBridge
-- StdLogger, a logger implementing the PSR3 and forward message to stdout or stderr according to message lever
+- StdLogger, a logger implementing the PSR3 and forward message to stdout or stderr according to message level
 - Secured server, need React/HTTP ^0.6
 
 ##[0.0.1-alpha3] - 2017-03-29

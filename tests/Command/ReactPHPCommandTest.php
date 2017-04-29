@@ -150,7 +150,77 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
 
         $error = $this->createMock(OutputInterface::class);
         $output = $this->createMock(ConsoleOutputInterface::class);
-        $output->expects(self::once())->method('getErrorOutput')->willReturn($error);
+        $output->expects(self::any())->method('getErrorOutput')->willReturn($error);
+
+        $this->getLogger()->expects(self::once())->method('setStdOutput')->with($output);
+        $this->getLogger()->expects(self::once())->method('setStdError')->with($error);
+
+        $this->buildCommand()->run($input, $output);
+    }
+
+    public function testRunTlsWithoutCertificate()
+    {
+        $input = $this->createMock(InputInterface::class);
+        $input->expects(self::any())
+            ->method('getOption')
+            ->willReturnCallback(function ($name) {
+                switch ($name) {
+                    case 'interface':
+                        return '0.0.0.0';
+                        break;
+                    case 'port':
+                        return '8012';
+                        break;
+                    case 'secure':
+                        return true;
+                        break;
+                }
+
+                return '';
+            });
+
+        $this->getLoop()->expects(self::never())->method('run');
+
+        $error = $this->createMock(OutputInterface::class);
+        $error->expects(self::once())->method('writeln');
+        $output = $this->createMock(ConsoleOutputInterface::class);
+        $output->expects(self::any())->method('getErrorOutput')->willReturn($error);
+
+        $this->getLogger()->expects(self::once())->method('setStdOutput')->with($output);
+        $this->getLogger()->expects(self::once())->method('setStdError')->with($error);
+
+        $this->buildCommand()->run($input, $output);
+    }
+    public function testRunTlsCertificate()
+    {
+        $input = $this->createMock(InputInterface::class);
+        $input->expects(self::any())
+            ->method('getOption')
+            ->willReturnCallback(function ($name) {
+                switch ($name) {
+                    case 'interface':
+                        return '0.0.0.0';
+                        break;
+                    case 'port':
+                        return '8012';
+                        break;
+                    case 'secure':
+                        return true;
+                        break;
+                    case 'local-cert':
+                        return '/dev/random';
+                        break;
+                }
+
+                return '';
+            });
+
+        $this->getLoop()->expects(self::once())->method('run');
+
+        $error = $this->createMock(OutputInterface::class);
+        $error->expects(self::never())->method('writeln');
+        $output = $this->createMock(ConsoleOutputInterface::class);
+        $output->expects(self::any())->method('getErrorOutput')->willReturn($error);
 
         $this->getLogger()->expects(self::once())->method('setStdOutput')->with($output);
         $this->getLogger()->expects(self::once())->method('setStdError')->with($error);
