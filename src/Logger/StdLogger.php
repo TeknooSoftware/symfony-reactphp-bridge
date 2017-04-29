@@ -50,6 +50,7 @@ class StdLogger extends AbstractLogger
 
     /**
      * @param OutputInterface $stdOutput
+     *
      * @return self
      */
     public function setStdOutput(OutputInterface $stdOutput): StdLogger
@@ -61,6 +62,7 @@ class StdLogger extends AbstractLogger
 
     /**
      * @param OutputInterface $stdError
+     *
      * @return self
      */
     public function setStdError(OutputInterface $stdError): StdLogger

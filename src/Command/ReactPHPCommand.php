@@ -147,6 +147,7 @@ class ReactPHPCommand extends ContainerAwareCommand
 
             if (empty($localCert) || !\file_exists($localCert)) {
                 $output->getErrorOutput()->writeln('Error, missing local certificate for secure server');
+
                 return;
             }
 
