@@ -34,7 +34,8 @@
         "pdepend/pdepend": "~2.5",
         "phpmd/phpmd": "~2.6",
         "sebastian/phpcpd": "~3.0",
-        "phploc/phploc": "~3.0"
+        "phploc/phploc": "~3.0",
+        "doctrine/doctrine-bundle": "^1.6.0"
     },
     "minimum-stability": "stable"
 }

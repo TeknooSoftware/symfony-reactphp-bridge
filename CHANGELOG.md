@@ -3,6 +3,9 @@
 ##[0.0.1-alpha4] - 2017-0
 ###Fixed
 - RequestListener supports header Content Type value as array from React.
+- Issue with Doctrine Connection Factory : Connection is not always automatically closed at end of ReactPHP Request.
+    Overload Doctrine configuration to replace the Doctrine Connection Factory to keep in a static context the connection
+    to share between requests.
 
 ###Updated
 - Fix minimum requirement of Symfony at Symfony 3.0

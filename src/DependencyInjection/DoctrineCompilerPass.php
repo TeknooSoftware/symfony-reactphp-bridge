@@ -20,31 +20,20 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHPBundle;
+namespace Teknoo\ReactPHPBundle\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Teknoo\ReactPHPBundle\DependencyInjection\DoctrineCompilerPass;
 
-/**
- * Class ReactPHPBundle.
- *
- * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
- *
- * @link        http://teknoo.software/symfony-react Project website
- *
- * @license     http://teknoo.software/license/mit         MIT License
- * @author      Richard Déloge <richarddeloge@gmail.com>
- */
-class ReactPHPBundle extends Bundle
+class DoctrineCompilerPass implements CompilerPassInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function build(ContainerBuilder $container)
+    public function process(ContainerBuilder $container)
     {
-        parent::build($container);
-
-        $container->addCompilerPass(new DoctrineCompilerPass());
+        if ($container->hasParameter('doctrine.dbal.connection_factory.class')) {
+            $container->setParameter(
+                'doctrine.dbal.connection_factory.class',
+                'Teknoo\\ReactPHPBundle\\Doctrine\\ConnectionFactory'
+            );
+        }
     }
 }
