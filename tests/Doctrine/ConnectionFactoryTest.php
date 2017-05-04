@@ -23,6 +23,7 @@
 namespace Teknoo\Tests\ReactPHPBundle;
 
 use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Teknoo\ReactPHPBundle\Doctrine\ConnectionFactory;
 
 /**
@@ -50,9 +51,15 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
 
         $this->getMockBuilder(Driver::class)->setMockClassName('ConnectionMock')->getMock();
 
-        $connection1 = $factory->createConnection(['driverClass' => 'ConnectionMock']);
+        $connection1 = $factory->createConnection([
+            'driverClass' => 'ConnectionMock',
+            'platform' => $this->createMock(AbstractPlatform::class)
+        ]);
 
-        $connection2 = $factory->createConnection(['driverClass' => 'ConnectionMock']);
+        $connection2 = $factory->createConnection([
+            'driverClass' => 'ConnectionMock',
+            'platform' => $this->createMock(AbstractPlatform::class)
+        ]);
 
         self::assertSame($connection1, $connection2);
     }
