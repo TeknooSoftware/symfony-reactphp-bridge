@@ -1,6 +1,6 @@
 #Teknoo Software - Symfony bridge for React PHP
 
-##[0.0.1-alpha4] - 2017-0
+##[0.0.1-alpha4] - 2017-05-04
 ###Fixed
 - RequestListener supports header Content Type value as array from React.
 - Issue with Doctrine Connection Factory : Connection is not always automatically closed at end of ReactPHP Request.
