@@ -50,13 +50,6 @@ class RequestBridge
     private $kernel;
 
     /**
-     * Attributes for Symfony requests.
-     *
-     * @var array
-     */
-    private $requestAttributes = [];
-
-    /**
      * @var ReactRequest
      */
     private $reactRequest;
@@ -65,6 +58,11 @@ class RequestBridge
      * @var ReactResponse
      */
     private $reactResponse;
+
+    /**
+     * @var RequestBuilder
+     */
+    private $requestBuilder;
 
     /**
      * @var string
@@ -86,16 +84,16 @@ class RequestBridge
      *
      * @param KernelInterface $kernel
      * @param DatesService    $datesService
-     * @param array           $requestAttributes
+     * @param RequestBuilder  $builder
      */
     public function __construct(
         KernelInterface $kernel,
         DatesService $datesService,
-        array $requestAttributes = []
+        RequestBuilder  $builder
     ) {
         $this->kernel = $kernel;
         $this->datesService = $datesService;
-        $this->requestAttributes = $requestAttributes;
+        $this->requestBuilder = $builder;
     }
 
     /**
@@ -132,25 +130,6 @@ class RequestBridge
     }
 
     /**
-     * To extract into an array the body formatted content. If the body is empty, the method return an empty array.
-     *
-     * @param string|null $content
-     *
-     * @return array
-     */
-    private function getParsedContent($content)
-    {
-        if (empty($content)) {
-            return [];
-        }
-
-        $post = [];
-        \parse_str($content, $post);
-
-        return $post;
-    }
-
-    /**
      * If the Kernel support Terminate behavior, execute it.
      *
      * @param SymfonyRequest  $request
@@ -165,52 +144,6 @@ class RequestBridge
         }
 
         return $this;
-    }
-
-    /**
-     * Prepare the Symfony request from the ReactPHP request.
-     * $_FILES is currently not supported
-     * $_COOKIES is currently not supported
-     * Simulate $_SERVER.
-     *
-     * @param array       $query
-     * @param array       $bodyParsed
-     * @param string|null $rawContent
-     *
-     * @return SymfonyRequest
-     *
-     * @SuppressWarnings(PHPMD)
-     */
-    private function getSymfonyRequest(array $query, array $bodyParsed, string $rawContent = null): SymfonyRequest
-    {
-        $headers = $this->reactRequest->getHeaders();
-
-        $server = \array_merge(
-            $_SERVER,
-            [
-                'REQUEST_URI' => $this->reactRequest->getPath(),
-                'REMOTE_ADDR' => $this->reactRequest->remoteAddress,
-            ]
-        );
-
-        if (isset($headers['Host'][0])) {
-            $server['SERVER_NAME'] = \explode(':', $headers['Host'][0]);
-        }
-
-        $sfRequest = new SymfonyRequest(
-            $query,
-            $bodyParsed,
-            $this->requestAttributes,
-            [], //$_COOKIES is currently not supported
-            [], //$_FILES is currently not supported
-            $server, // Server is partially filled a few lines below
-            $rawContent
-        );
-
-        $sfRequest->setMethod($this->method);
-        $sfRequest->headers->replace($headers);
-
-        return $sfRequest;
     }
 
     /**
@@ -292,38 +225,64 @@ class RequestBridge
     }
 
     /**
+     * To initialize a new request builder (via cloning) with request's body and request's method, before configure the
+     * builder with parsers to build the Symfony Request.
+     *
+     * @param string|null $content
+     * @return RequestBuilder
+     */
+    private function prepareBuilder(string &$content = null): RequestBuilder
+    {
+        $builder = clone $this->requestBuilder;
+        $builder->setMethod($this->method);
+        $builder->setContent($content);
+
+        return $builder;
+    }
+
+    /**
+     * Called by the Request builder, when the Symfony Request is ready to execute it with the Symfony Kernel.
+     *
+     * @param SymfonyRequest $request
+     * @return RequestBridge
+     */
+    public function executePreparedRequest(SymfonyRequest $request): RequestBridge
+    {
+        $sfResponse = $this->kernel->handle($request);
+
+        $this->reactResponse->writeHead(
+            $sfResponse->getStatusCode(),
+            $sfResponse->headers->all()
+        );
+
+        $this->reactResponse->end($sfResponse->getContent());
+        $this->terminate($request, $sfResponse);
+
+        $this->logRequest($request, $sfResponse);
+
+        return $this;
+    }
+
+    /**
      * Called by the RequestListener or when ReactPHP emit the data event to convert the ReactPHP Request to a Symfony
      * Request and execute it with Symfony before send result to ReactPHP.
      *
-     * @param string|null $content
+     * @param string|null &$content
      *
      * @return self
      */
-    public function __invoke(string $content = null): RequestBridge
+    public function __invoke(string &$content = null): RequestBridge
     {
         $this->checkRequirements();
 
-        $query = $this->reactRequest->getQueryParams();
-
-        $bodyParsed = $this->getParsedContent($content);
-
         try {
-            $sfRequest = $this->getSymfonyRequest($query, $bodyParsed, $content);
+            $builder = $this->prepareBuilder($content);
+            $builder->buildRequest($this->reactRequest, $this);
 
-            $sfResponse = $this->kernel->handle($sfRequest);
-
-            $this->reactResponse->writeHead(
-                $sfResponse->getStatusCode(),
-                $sfResponse->headers->all()
-            );
-
-            $this->reactResponse->end($sfResponse->getContent());
-            $this->terminate($sfRequest, $sfResponse);
-
-            $this->logRequest($sfRequest, $sfResponse);
         } catch (NotFoundHttpException $e) {
             $this->reactResponse->writeHead($e->getStatusCode(), $e->getHeaders());
             $this->reactResponse->end($e->getMessage());
+
         } catch (\Throwable $e) {
             $this->reactResponse->writeHead(500);
             $this->reactResponse->end($e->getMessage());

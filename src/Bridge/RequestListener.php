@@ -102,7 +102,8 @@ class RequestListener
     }
 
     /**
-     * To run directly the bridge with request without body (like GET request).
+     * To run directly the bridge with request without body-entity (like GET request): Any request without Content-Length
+     * or Transfer-Encoding headers
      *
      * @param RequestBridge $bridge
      *
@@ -110,13 +111,14 @@ class RequestListener
      */
     private function runRequestWithNoBody(RequestBridge $bridge): RequestListener
     {
-        $bridge(null);
+        $bridge();
 
         return $this;
     }
 
     /**
-     * To register the bridge to be executed on data event.
+     * To register the bridge to be executed on data event to execute a request a body-entity, (like POST request):
+     * Any request with Content-Length or Transfer-Encoding headers
      *
      * @param ReactRequest  $request
      * @param ReactResponse $response
@@ -141,8 +143,11 @@ class RequestListener
     }
 
     /**
-     * Event executed on request event emited by ReactPHP to execute directly request without body (like GET requests)
-     * or register the bridge to be executed on data event.
+     * Event executed on request event emited by ReactPHP to execute directly request without body-entity
+     * (like GET requests) or register the bridge to be executed on data event.
+     *
+     * Body are detected if  Ther is a Content-Length or Transfer-Encoding headers. TRACE request can not have a
+     * body-entity. (Following rfc2616)
      *
      * @param ReactRequest  $request
      * @param ReactResponse $response
@@ -152,22 +157,13 @@ class RequestListener
     public function __invoke(ReactRequest $request, ReactResponse $response)
     {
         $method = $this->getMethod($request);
-        $headers = $request->getHeaders();
 
         $bridge = $this->getRequestBridge($request, $response, $method);
 
-        if (\in_array($method, ['POST', 'PUT', 'DELETE', 'PATCH'])) {
-            $contentType = '';
-            if (isset($headers['Content-Type'])) {
-                $contentType = \implode(' ', (array) $headers['Content-Type']);
-            }
+        if ('TRACE' !== $method
+            && ($request->hasHeader('Content-Length') || $request->hasHeader('Transfer-Encoding'))) {
 
-            if (false !== \strpos($contentType, 'application/x-www-form-urlencoded')) {
-                $this->runRequestWithBody($request, $response, $bridge);
-            } else {
-                $response->writeHead(500);
-                $response->end('Request not managed');
-            }
+            $this->runRequestWithBody($request, $response, $bridge);
         } else {
             $this->runRequestWithNoBody($bridge);
         }

@@ -20,15 +20,15 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHPBundle;
+namespace Teknoo\ReactPHPBundle\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Teknoo\ReactPHPBundle\DependencyInjection\DoctrineCompilerPass;
-use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * Class ReactPHPBundle.
+ * Compiler pass to regiser all Request parser, tagged with `reactphp_bridge.request_parser` into the request builder
+ * `@teknoo.reactphp_bridge.request_builder`.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -37,17 +37,31 @@ use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
-class ReactPHPBundle extends Bundle
+class RequestParserCompilerPass implements CompilerPassInterface
 {
     /**
-     * To enable Compiler pass to register Request Parser entities into Request Builder
      * {@inheritdoc}
      */
-    public function build(ContainerBuilder $container)
+    public function process(ContainerBuilder $container)
     {
-        parent::build($container);
+        if (!$container->has('teknoo.reactphp_bridge.request_builder')) {
+            //Skip if the service does not exist
+            return $this;
+        }
 
-        $container->addCompilerPass(new DoctrineCompilerPass());
-        $container->addCompilerPass(new RequestParserCompilerPass());
+        $definition = $container->findDefinition('teknoo.reactphp_bridge.request_builder');
+
+        $taggedServices = $container->findTaggedServiceIds('reactphp_bridge.request_parser');
+
+        foreach ($taggedServices as $id => $tags) {
+            foreach ($tags as $attributes) {
+                $definition->addMethodCall(
+                    'registerRequestParser',
+                    [new Reference($id)]
+                );
+            }
+        }
+
+        return $this;
     }
 }

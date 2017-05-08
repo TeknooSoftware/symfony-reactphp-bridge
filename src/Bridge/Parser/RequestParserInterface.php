@@ -20,15 +20,13 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHPBundle;
+namespace Teknoo\ReactPHPBundle\Bridge\Parser;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Teknoo\ReactPHPBundle\DependencyInjection\DoctrineCompilerPass;
-use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
+use React\Http\Request as ReactRequest;
+use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 
 /**
- * Class ReactPHPBundle.
+ * Interface RequestParserInterface
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -37,17 +35,12 @@ use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
-class ReactPHPBundle extends Bundle
+interface RequestParserInterface
 {
     /**
-     * To enable Compiler pass to register Request Parser entities into Request Builder
-     * {@inheritdoc}
+     * @param ReactRequest $request
+     * @param RequestBuilder $builder
+     * @return RequestParserInterface
      */
-    public function build(ContainerBuilder $container)
-    {
-        parent::build($container);
-
-        $container->addCompilerPass(new DoctrineCompilerPass());
-        $container->addCompilerPass(new RequestParserCompilerPass());
-    }
+    public function parse(ReactRequest $request, RequestBuilder $builder): RequestParserInterface;
 }

@@ -84,6 +84,10 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getMethod')->willReturn('get');
+        $request->expects(self::any())->method('hasHeader')->willReturnMap([
+            ['Content-Length', false],
+            ['Transfer-Encoding', false]
+        ]);
 
         $response = $this->createMock(Response::class);
 
@@ -103,55 +107,13 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestListener::class, $listener($request, $response));
     }
 
-    public function testOptionsMethod()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('Options');
-
-        $response = $this->createMock(Response::class);
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'OPTIONS')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with(null)
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testHeadMethod()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('head');
-
-        $response = $this->createMock(Response::class);
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'HEAD')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with(null)
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
     public function testTraceMethod()
     {
         $request = $this->createMock(Request::class);
+        $request->expects(self::any())->method('hasHeader')->willReturnMap([
+            ['Content-Length', true],
+            ['Transfer-Encoding', true]
+        ]);
         $request->expects(self::any())->method('getMethod')->willReturn('trace');
 
         $response = $this->createMock(Response::class);
@@ -172,34 +134,14 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestListener::class, $listener($request, $response));
     }
 
-    public function testConnectMethod()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('connect');
-
-        $response = $this->createMock(Response::class);
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'CONNECT')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with(null)
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPostMethod()
+    public function testWithContentLengthBodyMethod()
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getMethod')->willReturn('post');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>'application/x-www-form-urlencoded']);
+        $request->expects(self::any())->method('hasHeader')->willReturnMap([
+            ['Content-Length', true],
+            ['Transfer-Encoding', false]
+        ]);
         $request->expects(self::any())->method('expectsContinue')->willReturn(false);
         $request->expects(self::once())
             ->method('on')
@@ -230,11 +172,14 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestListener::class, $listener($request, $response));
     }
 
-    public function testPostMethodContentTypeArray()
+    public function testWithTransfertEncodingBodyMethod()
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getMethod')->willReturn('post');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>['application/x-www-form-urlencoded']]);
+        $request->expects(self::any())->method('hasHeader')->willReturnMap([
+            ['Content-Length', false],
+            ['Transfer-Encoding', true]
+        ]);
         $request->expects(self::any())->method('expectsContinue')->willReturn(false);
         $request->expects(self::once())
             ->method('on')
@@ -265,221 +210,14 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestListener::class, $listener($request, $response));
     }
 
-    public function testPutMethod()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('put');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>'application/x-www-form-urlencoded']);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'PUT')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPutMethodContentTypeArray()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('put');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>['application/x-www-form-urlencoded']]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'PUT')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testDeleteMethod()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('delete');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>'application/x-www-form-urlencoded']);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'DELETE')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testDeleteMethodContentTypeArray()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('delete');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>['application/x-www-form-urlencoded']]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'DELETE')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPatchMethod()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('patch');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>'application/x-www-form-urlencoded']);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'PATCH')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPatchMethodContentTypeArray()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('patch');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>['application/x-www-form-urlencoded']]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'PATCH')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPostMethodWithContinue()
+    public function testWithContentLengthBodyMethodWithContinue()
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getMethod')->willReturn('post');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>'application/x-www-form-urlencoded']);
+        $request->expects(self::any())->method('hasHeader')->willReturnMap([
+            ['Content-Length', true],
+            ['Transfer-Encoding', false]
+        ]);
         $request->expects(self::any())->method('expectsContinue')->willReturn(true);
         $request->expects(self::once())
             ->method('on')
@@ -510,190 +248,39 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestListener::class, $listener($request, $response));
     }
 
-    public function testPutMethodWithContinue()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('put');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>'application/x-www-form-urlencoded']);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(true);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::once())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'PUT')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testDeleteMethodWithContinue()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('delete');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>'application/x-www-form-urlencoded']);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(true);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::once())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'DELETE')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPatchMethodWithContinue()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('patch');
-        $request->expects(self::any())->method('getHeaders')->willReturn(['Content-Type'=>'application/x-www-form-urlencoded']);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(true);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
-
-            return $request;
-        });
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::once())->method('writeContinue');
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'PATCH')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->with('foo=bar')
-            ->willReturnSelf();
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPostMethodBadContentType()
+    public function testWithTransfertEncodingBodyMethodWithContinue()
     {
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('getMethod')->willReturn('post');
-        $request->expects(self::any())->method('getHeaders')->willReturn([]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::never())->method('on');
+        $request->expects(self::any())->method('hasHeader')->willReturnMap([
+            ['Content-Length', false],
+            ['Transfer-Encoding', true]
+        ]);
+        $request->expects(self::any())->method('expectsContinue')->willReturn(true);
+        $request->expects(self::once())
+            ->method('on')
+            ->with('data')
+            ->willReturnCallback(function ($event, $callback) use ($request) {
+            self::assertEquals('data', $event);
+            $callback('foo=bar');
+
+            return $request;
+        });
 
         $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-        $response->expects(self::once())->method('writeHead')->with(500, []);
-        $response->expects(self::once())->method('end')->with('Request not managed');
+        $response->expects(self::once())->method('writeContinue');
 
         $this->getBridge()
-            ->expects(self::never())
-            ->method('__invoke');
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPutMethodBadContentType()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('put');
-        $request->expects(self::any())->method('getHeaders')->willReturn([]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::never())->method('on');
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-        $response->expects(self::once())->method('writeHead')->with(500, []);
-        $response->expects(self::once())->method('end')->with('Request not managed');
+            ->expects(self::once())
+            ->method('handle')
+            ->with($request, $response, 'POST')
+            ->willReturnSelf();
 
         $this->getBridge()
-            ->expects(self::never())
-            ->method('__invoke');
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testDeleteMethodBadContentType()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('delete');
-        $request->expects(self::any())->method('getHeaders')->willReturn([]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::never())->method('on');
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-        $response->expects(self::once())->method('writeHead')->with(500, []);
-        $response->expects(self::once())->method('end')->with('Request not managed');
-
-        $this->getBridge()
-            ->expects(self::never())
-            ->method('__invoke');
-
-        $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
-    }
-
-    public function testPatchMethodBadContentType()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('patch');
-        $request->expects(self::any())->method('getHeaders')->willReturn([]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::never())->method('on');
-
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-        $response->expects(self::once())->method('writeHead')->with(500, []);
-        $response->expects(self::once())->method('end')->with('Request not managed');
-
-        $this->getBridge()
-            ->expects(self::never())
-            ->method('__invoke');
+            ->expects(self::once())
+            ->method('__invoke')
+            ->with('foo=bar')
+            ->willReturnSelf();
 
         $listener = $this->buildRequestListener();
         self::assertInstanceOf(RequestListener::class, $listener($request, $response));

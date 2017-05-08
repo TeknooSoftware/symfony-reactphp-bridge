@@ -20,15 +20,12 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHPBundle;
+namespace Teknoo\ReactPHPBundle\Bridge\Parser;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Teknoo\ReactPHPBundle\DependencyInjection\DoctrineCompilerPass;
-use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
+use React\Http\Request as ReactRequest;
 
 /**
- * Class ReactPHPBundle.
+ * Class AbstractContentTypeRequestParser.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -37,17 +34,31 @@ use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
-class ReactPHPBundle extends Bundle
+abstract class AbstractContentTypeRequestParser
 {
     /**
-     * To enable Compiler pass to register Request Parser entities into Request Builder
+     * @var array
+     */
+    protected static $supportedContentsTypes = [];
+
+    /**
      * {@inheritdoc}
      */
-    public function build(ContainerBuilder $container)
+    protected function supportsContentType(ReactRequest $request): bool
     {
-        parent::build($container);
+        $headers = $request->getHeaders();
 
-        $container->addCompilerPass(new DoctrineCompilerPass());
-        $container->addCompilerPass(new RequestParserCompilerPass());
+        $contentType = '';
+        if (isset($headers['Content-Type'])) {
+            $contentType = \implode(' ', (array) $headers['Content-Type']);
+        }
+
+        foreach (static::$supportedContentsTypes as $supportedContentType) {
+            if (false !== \strpos(\strtolower($contentType), $supportedContentType)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

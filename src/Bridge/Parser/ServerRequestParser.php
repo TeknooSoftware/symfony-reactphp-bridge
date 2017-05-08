@@ -20,15 +20,13 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHPBundle;
+namespace Teknoo\ReactPHPBundle\Bridge\Parser;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Teknoo\ReactPHPBundle\DependencyInjection\DoctrineCompilerPass;
-use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
+use React\Http\Request as ReactRequest;
+use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 
 /**
- * Class ReactPHPBundle.
+ * Class ServerRequestParser.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -37,17 +35,29 @@ use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
-class ReactPHPBundle extends Bundle
+class ServerRequestParser implements RequestParserInterface
 {
     /**
-     * To enable Compiler pass to register Request Parser entities into Request Builder
      * {@inheritdoc}
      */
-    public function build(ContainerBuilder $container)
+    public function parse(ReactRequest $request, RequestBuilder $builder): RequestParserInterface
     {
-        parent::build($container);
+        $server = \array_merge(
+            $_SERVER,
+            [
+                'REQUEST_URI' => $request->getPath(),
+                'REMOTE_ADDR' => $request->remoteAddress,
+            ]
+        );
 
-        $container->addCompilerPass(new DoctrineCompilerPass());
-        $container->addCompilerPass(new RequestParserCompilerPass());
+        $headers = $request->getHeaders();
+
+        if (isset($headers['Host'][0])) {
+            $server['SERVER_NAME'] = \explode(':', $headers['Host'][0]);
+        }
+
+        $builder->setServer($server);
+
+        return $this;
     }
 }

@@ -1,5 +1,15 @@
 #Teknoo Software - Symfony bridge for React PHP
 
+##[0.0.1-alpha5]
+###Fixed
+- Request Listener pass body to Request Bridge only when Content-Length or Transfer-Encoding are defined into headre,
+  following rfc2616. (Not depending of HTTP's method)
+
+### Added
+- Request Parser to parse the Request from React PHP with several and simply parser to generate the Symfony Request.
+- Allow usage of $_SERVER, cookies, `application/x-www-form-urlencoded`, `multipart/form-data` or `application/json``
+  request.
+
 ##[0.0.1-alpha4] - 2017-05-04
 ###Fixed
 - RequestListener supports header Content Type value as array from React.

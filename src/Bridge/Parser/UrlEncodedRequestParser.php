@@ -20,15 +20,13 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHPBundle;
+namespace Teknoo\ReactPHPBundle\Bridge\Parser;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Teknoo\ReactPHPBundle\DependencyInjection\DoctrineCompilerPass;
-use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
+use React\Http\Request as ReactRequest;
+use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 
 /**
- * Class ReactPHPBundle.
+ * Class UrlEncodedRequestParser.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -37,17 +35,31 @@ use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
-class ReactPHPBundle extends Bundle
+class UrlEncodedRequestParser extends AbstractContentTypeRequestParser implements RequestParserInterface
 {
     /**
-     * To enable Compiler pass to register Request Parser entities into Request Builder
+     * @var array
+     */
+    protected static $supportedContentsTypes = [
+        'application/x-www-form-urlencoded'
+    ];
+
+    /**
      * {@inheritdoc}
      */
-    public function build(ContainerBuilder $container)
+    public function parse(ReactRequest $request, RequestBuilder $builder): RequestParserInterface
     {
-        parent::build($container);
+        if ($this->supportsContentType($request)) {
+            $post = [];
+            $rawContent = $builder->getContent();
 
-        $container->addCompilerPass(new DoctrineCompilerPass());
-        $container->addCompilerPass(new RequestParserCompilerPass());
+            if (!empty($rawContent)) {
+                \parse_str($rawContent, $post);
+            }
+
+            $builder->setRequestParsed($post);
+        }
+
+        return $this;
     }
 }
