@@ -20,13 +20,14 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHPBundle\Bridge\Parser;
+namespace Teknoo\Tests\ReactPHPBundle\Bridge\Parser;
 
+use Teknoo\ReactPHPBundle\Bridge\Parser\QueryRequestParser;
 use React\Http\Request as ReactRequest;
 use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 
 /**
- * Class HeaderRequestParser.
+ * Class QueryRequestParserTest.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -34,16 +35,27 @@ use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @covers \Teknoo\ReactPHPBundle\Bridge\Parser\QueryRequestParser
  */
-class HeaderRequestParser implements RequestParserInterface
+class QueryRequestParserTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * {@inheritdoc}
+     * @return QueryRequestParser
      */
-    public function parse(ReactRequest $request, RequestBuilder $builder): RequestParserInterface
+    public function buildParser(): QueryRequestParser
     {
-        $builder->setHeader($request->getHeaders());
+        return new QueryRequestParser();
+    }
 
-        return $this;
+    public function testParse()
+    {
+        $request = $this->createMock(ReactRequest::class);
+        $builder = $this->createMock(RequestBuilder::class);
+
+        $request->expects(self::once())->method('getQueryParams')->willReturn(['foo' => 'Bar']);
+        $builder->expects(self::once())->method('setQuery')->with(['foo' => 'Bar']);
+
+        self::assertInstanceOf(QueryRequestParser::class, $this->buildParser()->parse($request, $builder));
     }
 }

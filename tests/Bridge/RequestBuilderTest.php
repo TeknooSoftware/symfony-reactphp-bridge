@@ -21,13 +21,14 @@
  */
 
 namespace Teknoo\Tests\ReactPHPBundle\Bridge;
+
 use Symfony\Component\HttpFoundation\Request;
 use Teknoo\ReactPHPBundle\Bridge\Parser\RequestParserInterface;
 use Teknoo\ReactPHPBundle\Bridge\RequestBridge;
 use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 
 /**
- * Class RequestBridgeTest.
+ * Class RequestBuilderTest.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -42,6 +43,7 @@ class RequestBuilderTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @param array $arguments
+     *
      * @return RequestBuilder
      */
     public function buildBuilder($arguments = []): RequestBuilder
@@ -67,51 +69,51 @@ class RequestBuilderTest extends \PHPUnit_Framework_TestCase
     public function testHeader()
     {
         $builder = $this->buildBuilder();
-        self::assertInstanceOf(RequestBuilder::class, $builder->setHeader(['foo'=>'bar']));
-        self::assertEquals(['foo'=>'bar'], $builder->getHeader());
+        self::assertInstanceOf(RequestBuilder::class, $builder->setHeader(['foo' => 'bar']));
+        self::assertEquals(['foo' => 'bar'], $builder->getHeader());
     }
 
     public function testQuery()
     {
         $builder = $this->buildBuilder();
-        self::assertInstanceOf(RequestBuilder::class, $builder->setQuery(['foo'=>'bar']));
-        self::assertEquals(['foo'=>'bar'], $builder->getQuery());
+        self::assertInstanceOf(RequestBuilder::class, $builder->setQuery(['foo' => 'bar']));
+        self::assertEquals(['foo' => 'bar'], $builder->getQuery());
     }
 
     public function testRequestParsed()
     {
         $builder = $this->buildBuilder();
-        self::assertInstanceOf(RequestBuilder::class, $builder->setRequestParsed(['foo'=>'bar']));
-        self::assertEquals(['foo'=>'bar'], $builder->getRequestParsed());
+        self::assertInstanceOf(RequestBuilder::class, $builder->setRequestParsed(['foo' => 'bar']));
+        self::assertEquals(['foo' => 'bar'], $builder->getRequestParsed());
     }
 
     public function testAttributes()
     {
-        $builder = $this->buildBuilder(['bar'=>'foo']);
-        self::assertEquals(['bar'=>'foo'], $builder->getAttributes());
-        self::assertInstanceOf(RequestBuilder::class, $builder->setAttributes(['foo'=>'bar']));
-        self::assertEquals(['foo'=>'bar'], $builder->getAttributes());
+        $builder = $this->buildBuilder(['bar' => 'foo']);
+        self::assertEquals(['bar' => 'foo'], $builder->getAttributes());
+        self::assertInstanceOf(RequestBuilder::class, $builder->setAttributes(['foo' => 'bar']));
+        self::assertEquals(['foo' => 'bar'], $builder->getAttributes());
     }
 
     public function testCookies()
     {
         $builder = $this->buildBuilder();
-        self::assertInstanceOf(RequestBuilder::class, $builder->setCookies(['foo'=>'bar']));
-        self::assertEquals(['foo'=>'bar'], $builder->getCookies());
+        self::assertInstanceOf(RequestBuilder::class, $builder->setCookies(['foo' => 'bar']));
+        self::assertEquals(['foo' => 'bar'], $builder->getCookies());
     }
 
     public function testFiles()
     {
         $builder = $this->buildBuilder();
-        self::assertInstanceOf(RequestBuilder::class, $builder->setFiles(['foo'=>'bar']));
-        self::assertEquals(['foo'=>'bar'], $builder->getFiles());
+        self::assertInstanceOf(RequestBuilder::class, $builder->setFiles(['foo' => 'bar']));
+        self::assertEquals(['foo' => 'bar'], $builder->getFiles());
     }
 
     public function testServer()
     {
         $builder = $this->buildBuilder();
-        self::assertInstanceOf(RequestBuilder::class, $builder->setServer(['foo'=>'bar']));
-        self::assertEquals(['foo'=>'bar'], $builder->getServer());
+        self::assertInstanceOf(RequestBuilder::class, $builder->setServer(['foo' => 'bar']));
+        self::assertEquals(['foo' => 'bar'], $builder->getServer());
     }
 
     public function testContent()
@@ -125,32 +127,32 @@ class RequestBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $builder = $this->buildBuilder();
         self::assertInstanceOf(RequestBuilder::class, $builder->setMethod('GET'));
-        self::assertInstanceOf(RequestBuilder::class, $builder->setHeader(['foo'=>'bar']));
-        self::assertInstanceOf(RequestBuilder::class, $builder->setQuery(['foo'=>'bar']));
-        self::assertInstanceOf(RequestBuilder::class, $builder->setRequestParsed(['foo'=>'bar']));
-        self::assertInstanceOf(RequestBuilder::class, $builder->setAttributes(['foo'=>'bar']));
-        self::assertInstanceOf(RequestBuilder::class, $builder->setCookies(['foo'=>'bar']));
-        self::assertInstanceOf(RequestBuilder::class, $builder->setFiles(['foo'=>'bar']));
-        self::assertInstanceOf(RequestBuilder::class, $builder->setServer(['foo'=>'bar']));
+        self::assertInstanceOf(RequestBuilder::class, $builder->setHeader(['foo' => 'bar']));
+        self::assertInstanceOf(RequestBuilder::class, $builder->setQuery(['foo' => 'bar']));
+        self::assertInstanceOf(RequestBuilder::class, $builder->setRequestParsed(['foo' => 'bar']));
+        self::assertInstanceOf(RequestBuilder::class, $builder->setAttributes(['foo' => 'bar']));
+        self::assertInstanceOf(RequestBuilder::class, $builder->setCookies(['foo' => 'bar']));
+        self::assertInstanceOf(RequestBuilder::class, $builder->setFiles(['foo' => 'bar']));
+        self::assertInstanceOf(RequestBuilder::class, $builder->setServer(['foo' => 'bar']));
         self::assertInstanceOf(RequestBuilder::class, $builder->setContent('fooBar'));
 
         $clonedBuilder = clone $builder;
 
         self::assertEquals('GET', $builder->getMethod());
-        self::assertEquals(['foo'=>'bar'], $builder->getHeader());
-        self::assertEquals(['foo'=>'bar'], $builder->getQuery());
-        self::assertEquals(['foo'=>'bar'], $builder->getRequestParsed());
-        self::assertEquals(['foo'=>'bar'], $builder->getAttributes());
-        self::assertEquals(['foo'=>'bar'], $builder->getCookies());
-        self::assertEquals(['foo'=>'bar'], $builder->getFiles());
-        self::assertEquals(['foo'=>'bar'], $builder->getServer());
+        self::assertEquals(['foo' => 'bar'], $builder->getHeader());
+        self::assertEquals(['foo' => 'bar'], $builder->getQuery());
+        self::assertEquals(['foo' => 'bar'], $builder->getRequestParsed());
+        self::assertEquals(['foo' => 'bar'], $builder->getAttributes());
+        self::assertEquals(['foo' => 'bar'], $builder->getCookies());
+        self::assertEquals(['foo' => 'bar'], $builder->getFiles());
+        self::assertEquals(['foo' => 'bar'], $builder->getServer());
         self::assertEquals('fooBar', $builder->getContent());
 
         self::assertEmpty($clonedBuilder->getMethod());
         self::assertEmpty($clonedBuilder->getHeader());
         self::assertEmpty($clonedBuilder->getQuery());
         self::assertEmpty($clonedBuilder->getRequestParsed());
-        self::assertEquals(['foo'=>'bar'], $clonedBuilder->getAttributes());
+        self::assertEquals(['foo' => 'bar'], $clonedBuilder->getAttributes());
         self::assertEmpty($clonedBuilder->getCookies());
         self::assertEmpty($clonedBuilder->getFiles());
         self::assertEmpty($clonedBuilder->getServer());
@@ -172,7 +174,9 @@ class RequestBuilderTest extends \PHPUnit_Framework_TestCase
 
         $bridge->expects(self::once())
             ->method('executePreparedRequest')
-            ->with($this->callback(function ($req) { return $req instanceof Request;}));
+            ->with($this->callback(function ($req) {
+                return $req instanceof Request;
+            }));
 
         self::assertInstanceOf(
             RequestBuilder::class,

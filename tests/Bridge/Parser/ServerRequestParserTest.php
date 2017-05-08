@@ -20,13 +20,14 @@
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
 
-namespace Teknoo\ReactPHPBundle\Bridge\Parser;
+namespace Teknoo\Tests\ReactPHPBundle\Bridge\Parser;
 
+use Teknoo\ReactPHPBundle\Bridge\Parser\ServerRequestParser;
 use React\Http\Request as ReactRequest;
 use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 
 /**
- * Class HeaderRequestParser.
+ * Class ServerRequestParserTest.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -34,16 +35,29 @@ use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @covers \Teknoo\ReactPHPBundle\Bridge\Parser\ServerRequestParser
  */
-class HeaderRequestParser implements RequestParserInterface
+class ServerRequestParserTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * {@inheritdoc}
+     * @return ServerRequestParser
      */
-    public function parse(ReactRequest $request, RequestBuilder $builder): RequestParserInterface
+    public function buildParser(): ServerRequestParser
     {
-        $builder->setHeader($request->getHeaders());
+        return new ServerRequestParser();
+    }
 
-        return $this;
+    public function testParse()
+    {
+        $request = $this->createMock(ReactRequest::class);
+        $builder = $this->createMock(RequestBuilder::class);
+
+        $request->remoteAddress = '123.123.123.123';
+        $request->expects(self::any())->method('getPath')->willReturn('/foo');
+        $request->expects(self::any())->method('getHeaders')->willReturn(['Host' => ['foo.bar']]);
+        $builder->expects(self::once())->method('setServer');
+
+        self::assertInstanceOf(ServerRequestParser::class, $this->buildParser()->parse($request, $builder));
     }
 }

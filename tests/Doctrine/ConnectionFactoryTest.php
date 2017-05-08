@@ -53,12 +53,12 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
 
         $connection1 = $factory->createConnection([
             'driverClass' => 'ConnectionMock',
-            'platform' => $this->createMock(AbstractPlatform::class)
+            'platform' => $this->createMock(AbstractPlatform::class),
         ]);
 
         $connection2 = $factory->createConnection([
             'driverClass' => 'ConnectionMock',
-            'platform' => $this->createMock(AbstractPlatform::class)
+            'platform' => $this->createMock(AbstractPlatform::class),
         ]);
 
         self::assertSame($connection1, $connection2);

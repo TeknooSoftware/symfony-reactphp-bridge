@@ -19,7 +19,6 @@
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
  */
-
 ini_set('memory_limit', '16M');
 
 require_once __DIR__.'/../vendor/autoload.php';

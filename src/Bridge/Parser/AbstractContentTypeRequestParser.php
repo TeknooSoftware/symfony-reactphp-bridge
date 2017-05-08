@@ -33,6 +33,8 @@ use React\Http\Request as ReactRequest;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD)
  */
 abstract class AbstractContentTypeRequestParser
 {

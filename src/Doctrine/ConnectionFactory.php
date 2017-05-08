@@ -30,7 +30,7 @@ use Doctrine\DBAL\Connection;
 /**
  * To share a doctrine connection between each ReactPHP request :
  * - Doctrine connection are not already close at end, to avoid multiple connections to SQL
- * - Allow persistent connection with ReactPHP HTTP. *
+ * - Allow persistent connection with ReactPHP HTTP. *.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -48,6 +48,7 @@ class ConnectionFactory extends DoctrineConnectionFactory
 
     /**
      * @param array $params
+     *
      * @return string
      */
     private function computeParamsash(array &$params): string

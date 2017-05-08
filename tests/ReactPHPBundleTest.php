@@ -22,10 +22,7 @@
 
 namespace Teknoo\Tests\ReactPHPBundle;
 
-use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Teknoo\ReactPHPBundle\DependencyInjection\Configuration;
-use Teknoo\ReactPHPBundle\DependencyInjection\DoctrineCompilerPass;
 use Teknoo\ReactPHPBundle\ReactPHPBundle;
 
 /**

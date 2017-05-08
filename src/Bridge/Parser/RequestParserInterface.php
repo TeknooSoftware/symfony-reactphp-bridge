@@ -26,7 +26,7 @@ use React\Http\Request as ReactRequest;
 use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 
 /**
- * Interface RequestParserInterface
+ * Interface RequestParserInterface.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -38,8 +38,9 @@ use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 interface RequestParserInterface
 {
     /**
-     * @param ReactRequest $request
+     * @param ReactRequest   $request
      * @param RequestBuilder $builder
+     *
      * @return RequestParserInterface
      */
     public function parse(ReactRequest $request, RequestBuilder $builder): RequestParserInterface;

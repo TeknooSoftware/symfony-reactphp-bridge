@@ -27,7 +27,8 @@ use Teknoo\ReactPHPBundle\Bridge\Parser\RequestParserInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 /**
- * Class RequestBuilder. Builder, managing request's parsers to generate a usefull Symfony request from ReactPHP Request.
+ * Class RequestBuilder. Builder, managing request's parsers to generate a usefull Symfony request from
+ * ReactPHP Request.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -39,62 +40,70 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 class RequestBuilder
 {
     /**
-     * Request's HTTP method
+     * Request's HTTP method.
      *
      * @var string
      */
     private $method = '';
 
     /**
-     * Request's HTTP headers
+     * Request's HTTP headers.
+     *
      * @var array
      */
     private $header = [];
 
     /**
      * Request's HTTP query part (like $_GET).
+     *
      * @var array
      */
     private $query = [];
 
     /**
      * Request's HTTP body part (like $_POST).
+     *
      * @var array
      */
     private $requestParsed = [];
 
     /**
-     * Symfony's kernel attribute
+     * Symfony's kernel attribute.
+     *
      * @var array
      */
     private $attributes = [];
 
     /**
-     * Request's HTTP Cookies (like $_COOKIES)
+     * Request's HTTP Cookies (like $_COOKIES).
+     *
      * @var array
      */
     private $cookies = [];
 
     /**
-     * Request's HTTP Files transmitted (like $_FILES)
+     * Request's HTTP Files transmitted (like $_FILES).
+     *
      * @var array
      */
     private $files = [];
 
     /**
      * $_SERVER implementation for Symfony.
+     *
      * @var array
      */
     private $server = [];
 
     /**
      * Body content.
+     *
      * @var null
      */
-    private $content=null;
+    private $content = null;
 
     /**
-     * List of parser to configure the builder before create Symfony request
+     * List of parser to configure the builder before create Symfony request.
      *
      * @var RequestParserInterface[]
      */
@@ -102,6 +111,7 @@ class RequestBuilder
 
     /**
      * RequestBuilder constructor.
+     *
      * @param array $attributes
      */
     public function __construct(array $attributes)
@@ -111,6 +121,7 @@ class RequestBuilder
 
     /**
      * @param RequestParserInterface $requestParser
+     *
      * @return RequestBuilder
      */
     public function registerRequestParser(RequestParserInterface $requestParser): RequestBuilder
@@ -121,7 +132,7 @@ class RequestBuilder
     }
 
     /**
-     * Get the Request's HTTP method
+     * Get the Request's HTTP method.
      *
      * @return string
      */
@@ -131,9 +142,10 @@ class RequestBuilder
     }
 
     /**
-     * Set the Request's HTTP method
+     * Set the Request's HTTP method.
      *
      * @param string $method
+     *
      * @return self
      */
     public function setMethod(string $method): RequestBuilder
@@ -144,7 +156,8 @@ class RequestBuilder
     }
 
     /**
-     * Get the Request's HTTP headers
+     * Get the Request's HTTP headers.
+     *
      * @return array
      */
     public function getHeader(): array
@@ -153,9 +166,10 @@ class RequestBuilder
     }
 
     /**
-     * Set the Request's HTTP headers
+     * Set the Request's HTTP headers.
      *
      * @param array $header
+     *
      * @return self
      */
     public function setHeader(array $header): RequestBuilder
@@ -179,6 +193,7 @@ class RequestBuilder
      * Set the Request's HTTP query part (like $_GET).
      *
      * @param array $query
+     *
      * @return self
      */
     public function setQuery(array $query): RequestBuilder
@@ -202,6 +217,7 @@ class RequestBuilder
      * Set the Request's HTTP body part (like $_POST).
      *
      * @param array $requestParsed
+     *
      * @return self
      */
     public function setRequestParsed(array $requestParsed): RequestBuilder
@@ -212,7 +228,8 @@ class RequestBuilder
     }
 
     /**
-     * Get the Symfony's kernel attribute
+     * Get the Symfony's kernel attribute.
+     *
      * @return array
      */
     public function getAttributes(): array
@@ -221,8 +238,10 @@ class RequestBuilder
     }
 
     /**
-     * Set the Symfony's kernel attribute
+     * Set the Symfony's kernel attribute.
+     *
      * @param array $attributes
+     *
      * @return self
      */
     public function setAttributes(array $attributes): RequestBuilder
@@ -233,7 +252,7 @@ class RequestBuilder
     }
 
     /**
-     * Get the Request's HTTP Cookies (like $_COOKIES)
+     * Get the Request's HTTP Cookies (like $_COOKIES).
      *
      * @return array
      */
@@ -243,9 +262,10 @@ class RequestBuilder
     }
 
     /**
-     * Set the Request's HTTP Cookies (like $_COOKIES)
+     * Set the Request's HTTP Cookies (like $_COOKIES).
      *
      * @param array $cookies
+     *
      * @return self
      */
     public function setCookies(array $cookies): RequestBuilder
@@ -256,7 +276,7 @@ class RequestBuilder
     }
 
     /**
-     * Get the Request's HTTP Files transmitted (like $_FILES)
+     * Get the Request's HTTP Files transmitted (like $_FILES).
      *
      * @return array
      */
@@ -266,9 +286,10 @@ class RequestBuilder
     }
 
     /**
-     * Set the Request's HTTP Files transmitted (like $_FILES)
+     * Set the Request's HTTP Files transmitted (like $_FILES).
      *
      * @param array $files
+     *
      * @return self
      */
     public function setFiles(array $files): RequestBuilder
@@ -280,6 +301,7 @@ class RequestBuilder
 
     /**
      * Get the $_SERVER implementation for Symfony.
+     *
      * @return array
      */
     public function getServer(): array
@@ -291,6 +313,7 @@ class RequestBuilder
      * Set the $_SERVER implementation for Symfony.
      *
      * @param array $server
+     *
      * @return self
      */
     public function setServer(array $server): RequestBuilder
@@ -302,8 +325,6 @@ class RequestBuilder
 
     /**
      * Get the Body content.
-     *
-     * @return null
      */
     public function getContent()
     {
@@ -314,6 +335,7 @@ class RequestBuilder
      * Set the Body content.
      *
      * @param null $content
+     *
      * @return self
      */
     public function setContent($content): RequestBuilder
@@ -339,7 +361,7 @@ class RequestBuilder
     }
 
     /**
-     * To prepare the builder to create a new Symfony Request and lost preivous cloning data
+     * To prepare the builder to create a new Symfony Request and lost preivous cloning data.
      */
     public function __clone()
     {
@@ -372,8 +394,9 @@ class RequestBuilder
     /**
      * Called by Request Bridge to transform the ReactPHP Request to a usefull Symfony request, using referenced parser.
      *
-     * @param ReactRequest $request
+     * @param ReactRequest  $request
      * @param RequestBridge $bridge
+     *
      * @return RequestBuilder
      */
     public function buildRequest(ReactRequest $request, RequestBridge $bridge): RequestBuilder

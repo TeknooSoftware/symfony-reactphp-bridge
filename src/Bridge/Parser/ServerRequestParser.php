@@ -34,6 +34,8 @@ use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD)
  */
 class ServerRequestParser implements RequestParserInterface
 {

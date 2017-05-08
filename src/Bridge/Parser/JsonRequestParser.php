@@ -34,6 +34,8 @@ use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD)
  */
 class JsonRequestParser extends AbstractContentTypeRequestParser implements RequestParserInterface
 {
@@ -43,7 +45,7 @@ class JsonRequestParser extends AbstractContentTypeRequestParser implements Requ
     protected static $supportedContentsTypes = [
         'application/json',
         'application/javascript',
-        'application/ld+json'
+        'application/ld+json',
     ];
 
     /**

@@ -34,6 +34,8 @@ use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD)
  */
 class MultipartRequestParser extends AbstractContentTypeRequestParser implements RequestParserInterface
 {
@@ -41,7 +43,7 @@ class MultipartRequestParser extends AbstractContentTypeRequestParser implements
      * @var array
      */
     protected static $supportedContentsTypes = [
-        'multipart/form-data'
+        'multipart/form-data',
     ];
 
     /**
@@ -50,7 +52,6 @@ class MultipartRequestParser extends AbstractContentTypeRequestParser implements
     public function parse(ReactRequest $request, RequestBuilder $builder): RequestParserInterface
     {
         if ($this->supportsContentType($request)) {
-
         }
 
         return $this;

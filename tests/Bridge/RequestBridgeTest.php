@@ -160,13 +160,13 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $requestBuilder = $this->getRequestBuilder();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)->willReturnSelf();
         $requestBuilder->expects(self::once())->method('setMethod')->with('POST')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo'=>'bar']))->willReturnSelf();
+        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo' => 'bar']))->willReturnSelf();
 
         $bridge = $this->buildRequestBridge();
 
         $bridge = $bridge->handle($request, $response, 'POST');
         self::assertInstanceOf(RequestBridge::class, $bridge);
-        $content = \http_build_query(['foo'=>'bar']);
+        $content = \http_build_query(['foo' => 'bar']);
         self::assertInstanceOf(RequestBridge::class, $bridge($content));
     }
 
@@ -197,7 +197,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
         $requestBuilder = $this->getRequestBuilder();
         $requestBuilder->expects(self::once())->method('setMethod')->with('GET')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo'=>'bar']))->willReturnSelf();
+        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo' => 'bar']))->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new NotFoundHttpException('Not found'));
 
@@ -205,7 +205,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
         $bridge = $bridge->handle($request, $response, 'GET');
         self::assertInstanceOf(RequestBridge::class, $bridge);
-        $content = \http_build_query(['foo'=>'bar']);
+        $content = \http_build_query(['foo' => 'bar']);
         self::assertInstanceOf(RequestBridge::class, $bridge($content));
     }
 
@@ -236,7 +236,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
         $requestBuilder = $this->getRequestBuilder();
         $requestBuilder->expects(self::once())->method('setMethod')->with('GET')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo'=>'bar']))->willReturnSelf();
+        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo' => 'bar']))->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new \Exception('Error'));
 
@@ -244,7 +244,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
         $bridge = $bridge->handle($request, $response, 'GET');
         self::assertInstanceOf(RequestBridge::class, $bridge);
-        $content = \http_build_query(['foo'=>'bar']);
+        $content = \http_build_query(['foo' => 'bar']);
         self::assertInstanceOf(RequestBridge::class, $bridge($content));
     }
 
@@ -271,7 +271,9 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
             ->expects(self::once())
             ->method('error')
             ->with($this->callback(
-                function ($message) {return 0 === strpos($message, '123.123.123.123 - [ Error in'); }
+                function ($message) {
+                    return 0 === strpos($message, '123.123.123.123 - [ Error in');
+                }
             ));
 
         $bridge = $this->buildRequestBridge();
@@ -291,7 +293,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
         $requestBuilder = $this->getRequestBuilder();
         $requestBuilder->expects(self::once())->method('setMethod')->with('POST')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo'=>'bar']))->willReturnSelf();
+        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo' => 'bar']))->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new \Exception('Error'));
 
@@ -305,7 +307,9 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
             ->expects(self::once())
             ->method('error')
             ->with($this->callback(
-                function ($message) {return 0 === strpos($message, '123.123.123.123 - [ Error in'); }
+                function ($message) {
+                    return 0 === strpos($message, '123.123.123.123 - [ Error in');
+                }
             ));
 
         $bridge = $this->buildRequestBridge();
@@ -313,7 +317,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
         $bridge = $bridge->handle($request, $response, 'POST');
         self::assertInstanceOf(RequestBridge::class, $bridge);
-        $content = \http_build_query(['foo'=>'bar']);
+        $content = \http_build_query(['foo' => 'bar']);
         self::assertInstanceOf(RequestBridge::class, $bridge($content));
     }
 
@@ -349,7 +353,9 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
-            ->with($this->callback(function($a){return $a instanceof \Symfony\Component\HttpFoundation\Request;}))
+            ->with($this->callback(function ($a) {
+                return $a instanceof \Symfony\Component\HttpFoundation\Request;
+            }))
             ->willReturn($sfResponse);
 
         $bridge = $this->buildRequestBridge();
@@ -386,7 +392,9 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
-            ->with($this->callback(function($a){return $a instanceof \Symfony\Component\HttpFoundation\Request;}))
+            ->with($this->callback(function ($a) {
+                return $a instanceof \Symfony\Component\HttpFoundation\Request;
+            }))
             ->willReturn($sfResponse);
 
         $bridge = $this->buildRequestBridge();
@@ -423,7 +431,9 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
-            ->with($this->callback(function($a){return $a instanceof \Symfony\Component\HttpFoundation\Request;}))
+            ->with($this->callback(function ($a) {
+                return $a instanceof \Symfony\Component\HttpFoundation\Request;
+            }))
             ->willReturn($sfResponse);
 
         $date = new \DateTime('2017-04-27 14:13:12');
@@ -467,7 +477,9 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
         $this->getKernel()
             ->expects(self::once())
             ->method('handle')
-            ->with($this->callback(function($a){return $a instanceof \Symfony\Component\HttpFoundation\Request;}))
+            ->with($this->callback(function ($a) {
+                return $a instanceof \Symfony\Component\HttpFoundation\Request;
+            }))
             ->willReturn($sfResponse);
 
         $date = new \DateTime('2017-04-27 14:13:12');

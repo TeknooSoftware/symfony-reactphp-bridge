@@ -86,7 +86,7 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $request->expects(self::any())->method('getMethod')->willReturn('get');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', false],
-            ['Transfer-Encoding', false]
+            ['Transfer-Encoding', false],
         ]);
 
         $response = $this->createMock(Response::class);
@@ -112,7 +112,7 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $request = $this->createMock(Request::class);
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', true],
-            ['Transfer-Encoding', true]
+            ['Transfer-Encoding', true],
         ]);
         $request->expects(self::any())->method('getMethod')->willReturn('trace');
 
@@ -140,18 +140,18 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $request->expects(self::any())->method('getMethod')->willReturn('post');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', true],
-            ['Transfer-Encoding', false]
+            ['Transfer-Encoding', false],
         ]);
         $request->expects(self::any())->method('expectsContinue')->willReturn(false);
         $request->expects(self::once())
             ->method('on')
             ->with('data')
             ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
+                self::assertEquals('data', $event);
+                $callback('foo=bar');
 
-            return $request;
-        });
+                return $request;
+            });
 
         $response = $this->createMock(Response::class);
         $response->expects(self::never())->method('writeContinue');
@@ -178,18 +178,18 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $request->expects(self::any())->method('getMethod')->willReturn('post');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', false],
-            ['Transfer-Encoding', true]
+            ['Transfer-Encoding', true],
         ]);
         $request->expects(self::any())->method('expectsContinue')->willReturn(false);
         $request->expects(self::once())
             ->method('on')
             ->with('data')
             ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
+                self::assertEquals('data', $event);
+                $callback('foo=bar');
 
-            return $request;
-        });
+                return $request;
+            });
 
         $response = $this->createMock(Response::class);
         $response->expects(self::never())->method('writeContinue');
@@ -216,18 +216,18 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $request->expects(self::any())->method('getMethod')->willReturn('post');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', true],
-            ['Transfer-Encoding', false]
+            ['Transfer-Encoding', false],
         ]);
         $request->expects(self::any())->method('expectsContinue')->willReturn(true);
         $request->expects(self::once())
             ->method('on')
             ->with('data')
             ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
+                self::assertEquals('data', $event);
+                $callback('foo=bar');
 
-            return $request;
-        });
+                return $request;
+            });
 
         $response = $this->createMock(Response::class);
         $response->expects(self::once())->method('writeContinue');
@@ -254,18 +254,18 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $request->expects(self::any())->method('getMethod')->willReturn('post');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', false],
-            ['Transfer-Encoding', true]
+            ['Transfer-Encoding', true],
         ]);
         $request->expects(self::any())->method('expectsContinue')->willReturn(true);
         $request->expects(self::once())
             ->method('on')
             ->with('data')
             ->willReturnCallback(function ($event, $callback) use ($request) {
-            self::assertEquals('data', $event);
-            $callback('foo=bar');
+                self::assertEquals('data', $event);
+                $callback('foo=bar');
 
-            return $request;
-        });
+                return $request;
+            });
 
         $response = $this->createMock(Response::class);
         $response->expects(self::once())->method('writeContinue');

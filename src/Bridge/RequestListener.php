@@ -102,8 +102,8 @@ class RequestListener
     }
 
     /**
-     * To run directly the bridge with request without body-entity (like GET request): Any request without Content-Length
-     * or Transfer-Encoding headers
+     * To run directly the bridge with request without body-entity (like GET request): Any request without
+     * Content-Length or Transfer-Encoding headers.
      *
      * @param RequestBridge $bridge
      *
@@ -118,7 +118,7 @@ class RequestListener
 
     /**
      * To register the bridge to be executed on data event to execute a request a body-entity, (like POST request):
-     * Any request with Content-Length or Transfer-Encoding headers
+     * Any request with Content-Length or Transfer-Encoding headers.
      *
      * @param ReactRequest  $request
      * @param ReactResponse $response
@@ -162,7 +162,6 @@ class RequestListener
 
         if ('TRACE' !== $method
             && ($request->hasHeader('Content-Length') || $request->hasHeader('Transfer-Encoding'))) {
-
             $this->runRequestWithBody($request, $response, $bridge);
         } else {
             $this->runRequestWithNoBody($bridge);

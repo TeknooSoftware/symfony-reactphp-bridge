@@ -34,6 +34,8 @@ use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD)
  */
 class UrlEncodedRequestParser extends AbstractContentTypeRequestParser implements RequestParserInterface
 {
@@ -41,7 +43,7 @@ class UrlEncodedRequestParser extends AbstractContentTypeRequestParser implement
      * @var array
      */
     protected static $supportedContentsTypes = [
-        'application/x-www-form-urlencoded'
+        'application/x-www-form-urlencoded',
     ];
 
     /**

@@ -41,6 +41,8 @@ use Teknoo\ReactPHPBundle\Service\DatesService;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD)
  */
 class RequestBridge
 {
@@ -229,6 +231,7 @@ class RequestBridge
      * builder with parsers to build the Symfony Request.
      *
      * @param string|null $content
+     *
      * @return RequestBuilder
      */
     private function prepareBuilder(string &$content = null): RequestBuilder
@@ -244,6 +247,7 @@ class RequestBridge
      * Called by the Request builder, when the Symfony Request is ready to execute it with the Symfony Kernel.
      *
      * @param SymfonyRequest $request
+     *
      * @return RequestBridge
      */
     public function executePreparedRequest(SymfonyRequest $request): RequestBridge
@@ -278,11 +282,9 @@ class RequestBridge
         try {
             $builder = $this->prepareBuilder($content);
             $builder->buildRequest($this->reactRequest, $this);
-
         } catch (NotFoundHttpException $e) {
             $this->reactResponse->writeHead($e->getStatusCode(), $e->getHeaders());
             $this->reactResponse->end($e->getMessage());
-
         } catch (\Throwable $e) {
             $this->reactResponse->writeHead(500);
             $this->reactResponse->end($e->getMessage());
