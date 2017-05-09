@@ -55,6 +55,7 @@ class ServerRequestParserTest extends \PHPUnit_Framework_TestCase
 
         $request->remoteAddress = '123.123.123.123';
         $request->expects(self::any())->method('getPath')->willReturn('/foo');
+        $request->expects(self::any())->method('getQueryParams')->willReturn(['foo'=>'bar']);
         $request->expects(self::any())->method('getHeaders')->willReturn(['Host' => ['foo.bar']]);
         $builder->expects(self::once())->method('setServer');
 

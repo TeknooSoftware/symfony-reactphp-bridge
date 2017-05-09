@@ -8,6 +8,7 @@ parameters:
 
   #Request parser
   teknoo.reactphp_bridge.request_parser.header.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\HeaderRequestParser'
+  teknoo.reactphp_bridge.request_parser.cookies.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\CookiesRequestParser'
   teknoo.reactphp_bridge.request_parser.json.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\JsonRequestParser'
   teknoo.reactphp_bridge.request_parser.multipart.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\MultipartRequestParser'
   teknoo.reactphp_bridge.request_parser.query.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\QueryRequestParser'
@@ -45,6 +46,11 @@ services:
     class: "%teknoo.reactphp_bridge.request_listener.class%"
     arguments:
       - "@teknoo.reactphp_bridge.request_bridge"
+
+  teknoo.reactphp_bridge.request_parser.cookies:
+    class: "%teknoo.reactphp_bridge.request_parser.cookies.class%"
+    tags:
+      - { name: 'reactphp_bridge.request_parser' }
 
   teknoo.reactphp_bridge.request_parser.header:
     class: "%teknoo.reactphp_bridge.request_parser.header.class%"

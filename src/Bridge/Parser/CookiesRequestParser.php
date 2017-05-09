@@ -26,7 +26,7 @@ use React\Http\Request as ReactRequest;
 use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
 
 /**
- * Class ServerRequestParser.
+ * Class CookiesRequestParser.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -34,36 +34,33 @@ use Teknoo\ReactPHPBundle\Bridge\RequestBuilder;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
- *
- * @SuppressWarnings(PHPMD)
  */
-class ServerRequestParser implements RequestParserInterface
+class CookiesRequestParser implements RequestParserInterface
 {
     /**
      * {@inheritdoc}
      */
     public function parse(ReactRequest $request, RequestBuilder $builder): RequestParserInterface
     {
-        $server = \array_merge(
-            $_SERVER,
-            [
-                'REQUEST_URI' => $request->getPath(),
-                'REMOTE_ADDR' => $request->remoteAddress,
-            ]
-        );
-
-        $queryParams = $request->getQueryParams();
-        if (!empty($queryParams)) {
-            $server['QUERY_STRING'] = \http_build_query((array) $queryParams);
-        }
-
         $headers = $request->getHeaders();
 
-        if (isset($headers['Host'][0])) {
-            $server['SERVER_NAME'] = \explode(':', $headers['Host'][0]);
-        }
+        if (isset($headers['Cookie'])) {
+            $cookiesList = [];
 
-        $builder->setServer($server);
+            foreach ((array) $headers['Cookie'] as &$cookieRaws) {
+                foreach (\explode(';', $cookieRaws) as &$cookie) {
+                    $cookie = \trim($cookie);
+                    if (empty($cookie)) {
+                        continue;
+                    }
+
+                    list($name, $value) = \explode('=', $cookie, 2);
+                    $cookiesList[$name] = \urldecode($value);
+                }
+            }
+
+            $builder->setCookies($cookiesList);
+        }
 
         return $this;
     }
