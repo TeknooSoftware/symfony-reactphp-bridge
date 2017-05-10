@@ -4,22 +4,13 @@ parameters:
   teknoo.reactphp_bridge.request_bridge.class: 'Teknoo\ReactPHPBundle\Bridge\RequestBridge'
   teknoo.reactphp_bridge.request_listener.class: 'Teknoo\ReactPHPBundle\Bridge\RequestListener'
   teknoo.reactphp_bridge.request_builder.class: 'Teknoo\ReactPHPBundle\Bridge\RequestBuilder'
-  teknoo.reactphp_bridge.request_builder.arguments: []
-
-  #Request parser
-  teknoo.reactphp_bridge.request_parser.header.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\HeaderRequestParser'
-  teknoo.reactphp_bridge.request_parser.cookies.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\CookiesRequestParser'
-  teknoo.reactphp_bridge.request_parser.json.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\JsonRequestParser'
-  teknoo.reactphp_bridge.request_parser.multipart.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\MultipartRequestParser'
-  teknoo.reactphp_bridge.request_parser.query.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\QueryRequestParser'
-  teknoo.reactphp_bridge.request_parser.server.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\ServerRequestParser'
-  teknoo.reactphp_bridge.request_parser.url_encoded.class: 'Teknoo\ReactPHPBundle\Bridge\Parser\UrlEncodedRequestParser'
 
   #Command controller
   teknoo.reactphp_bridge.command.class: 'Teknoo\ReactPHPBundle\Command\ReactPHPCommand'
 
   #Vendors
   teknoo.reactphp_bridge.vendor.loop.class: 'React\EventLoop\LoopInterface'
+  teknoo.reactphp_bridge.vendor.http_foundation_factory.class: 'Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory'
 
   #services
   teknoo.reactphp_bridge.service.dates.class: 'Teknoo\ReactPHPBundle\Service\DatesService'
@@ -30,7 +21,7 @@ services:
   teknoo.reactphp_bridge.request_builder:
     class: "%teknoo.reactphp_bridge.request_builder.class%"
     arguments:
-      - "%teknoo.reactphp_bridge.request_builder.arguments%"
+      - "@teknoo.reactphp_bridge.vendor.http_foundation_factory"
 
   teknoo.reactphp_bridge.request_bridge:
     class: "%teknoo.reactphp_bridge.request_bridge.class%"
@@ -40,47 +31,6 @@ services:
       - "@teknoo.reactphp_bridge.request_builder"
     calls:
       - ['setLogger', ["@teknoo.reactphp_bridge.logger.std_logger"]]
-
-  #Request parser
-  teknoo.reactphp_bridge.request_listener:
-    class: "%teknoo.reactphp_bridge.request_listener.class%"
-    arguments:
-      - "@teknoo.reactphp_bridge.request_bridge"
-
-  teknoo.reactphp_bridge.request_parser.cookies:
-    class: "%teknoo.reactphp_bridge.request_parser.cookies.class%"
-    tags:
-      - { name: 'reactphp_bridge.request_parser' }
-
-  teknoo.reactphp_bridge.request_parser.header:
-    class: "%teknoo.reactphp_bridge.request_parser.header.class%"
-    tags:
-      - { name: 'reactphp_bridge.request_parser' }
-
-  teknoo.reactphp_bridge.request_parser.json:
-    class: "%teknoo.reactphp_bridge.request_parser.json.class%"
-    tags:
-      - { name: 'reactphp_bridge.request_parser' }
-
-  teknoo.reactphp_bridge.request_parser.multipart:
-    class: "%teknoo.reactphp_bridge.request_parser.multipart.class%"
-    tags:
-      - { name: 'reactphp_bridge.request_parser' }
-
-  teknoo.reactphp_bridge.request_parser.query:
-    class: "%teknoo.reactphp_bridge.request_parser.query.class%"
-    tags:
-      - { name: 'reactphp_bridge.request_parser' }
-
-  teknoo.reactphp_bridge.request_parser.server:
-    class: "%teknoo.reactphp_bridge.request_parser.server.class%"
-    tags:
-      - { name: 'reactphp_bridge.request_parser' }
-
-  teknoo.reactphp_bridge.request_parser.url_encoded:
-    class: "%teknoo.reactphp_bridge.request_parser.url_encoded.class%"
-    tags:
-      - { name: 'reactphp_bridge.request_parser' }
 
   #Command controller
   teknoo.reactphp_bridge.command:
@@ -96,6 +46,9 @@ services:
   teknoo.reactphp_bridge.vendor.loop:
     class: "%teknoo.reactphp_bridge.vendor.loop.class%"
     factory: ['React\EventLoop\Factory', 'create']
+
+  teknoo.reactphp_bridge.vendor.http_foundation_factory:
+    class: "%teknoo.reactphp_bridge.vendor.http_foundation_factory.class%"
 
   #services
   teknoo.reactphp_bridge.service.dates:

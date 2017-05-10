@@ -25,7 +25,6 @@ namespace Teknoo\ReactPHPBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Teknoo\ReactPHPBundle\DependencyInjection\DoctrineCompilerPass;
-use Teknoo\ReactPHPBundle\DependencyInjection\RequestParserCompilerPass;
 
 /**
  * Class ReactPHPBundle.
@@ -48,6 +47,5 @@ class ReactPHPBundle extends Bundle
         parent::build($container);
 
         $container->addCompilerPass(new DoctrineCompilerPass());
-        $container->addCompilerPass(new RequestParserCompilerPass());
     }
 }

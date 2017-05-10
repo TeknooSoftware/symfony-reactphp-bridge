@@ -22,8 +22,10 @@
 
 namespace Teknoo\Tests\ReactPHPBundle\Bridge;
 
-use React\Http\Request;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 use React\Http\Response;
+use React\Stream\ReadableStreamInterface;
 use Teknoo\ReactPHPBundle\Bridge\RequestBridge;
 use Teknoo\ReactPHPBundle\Bridge\RequestListener;
 
@@ -66,24 +68,10 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         return new RequestListener($this->getBridge());
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
-    public function testBadHTTPMethodBehavior()
+    public function testWithNoBody()
     {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('foo');
-
-        $response = $this->createMock(Response::class);
-
-        $listener = $this->buildRequestListener();
-        $listener($request, $response);
-    }
-
-    public function testGetMethod()
-    {
-        $request = $this->createMock(Request::class);
-        $request->expects(self::any())->method('getMethod')->willReturn('get');
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects(self::any())->method('getMethod')->willReturn('GET');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', false],
             ['Transfer-Encoding', false],
@@ -94,7 +82,7 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::once())
             ->method('handle')
-            ->with($request, $response, 'GET')
+            ->with($request, $response)
             ->willReturnSelf();
 
         $this->getBridge()
@@ -109,7 +97,7 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testTraceMethod()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', true],
             ['Transfer-Encoding', true],
@@ -121,7 +109,7 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::once())
             ->method('handle')
-            ->with($request, $response, 'TRACE')
+            ->with($request, $response)
             ->willReturnSelf();
 
         $this->getBridge()
@@ -136,14 +124,15 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testWithContentLengthBodyMethod()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
         $request->expects(self::any())->method('getMethod')->willReturn('post');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', true],
             ['Transfer-Encoding', false],
         ]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::once())
+        $body = $this->createMock(ReadableStreamInterface::class);
+        $request->expects(self::any())->method('getBody')->willReturn($body);
+        $body->expects(self::once())
             ->method('on')
             ->with('data')
             ->willReturnCallback(function ($event, $callback) use ($request) {
@@ -159,7 +148,7 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::once())
             ->method('handle')
-            ->with($request, $response, 'POST')
+            ->with($request, $response)
             ->willReturnSelf();
 
         $this->getBridge()
@@ -174,14 +163,15 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testWithTransfertEncodingBodyMethod()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
         $request->expects(self::any())->method('getMethod')->willReturn('post');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', false],
             ['Transfer-Encoding', true],
         ]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(false);
-        $request->expects(self::once())
+        $body = $this->createMock(ReadableStreamInterface::class);
+        $request->expects(self::any())->method('getBody')->willReturn($body);
+        $body->expects(self::once())
             ->method('on')
             ->with('data')
             ->willReturnCallback(function ($event, $callback) use ($request) {
@@ -192,12 +182,11 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
             });
 
         $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
 
         $this->getBridge()
             ->expects(self::once())
             ->method('handle')
-            ->with($request, $response, 'POST')
+            ->with($request, $response)
             ->willReturnSelf();
 
         $this->getBridge()
@@ -210,36 +199,24 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestListener::class, $listener($request, $response));
     }
 
-    public function testWithContentLengthBodyMethodWithContinue()
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testWithContentLengthBodyMethodBodyNotReadableInterface()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
         $request->expects(self::any())->method('getMethod')->willReturn('post');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', true],
             ['Transfer-Encoding', false],
         ]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(true);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-                self::assertEquals('data', $event);
-                $callback('foo=bar');
-
-                return $request;
-            });
+        $body = $this->createMock(StreamInterface::class);
+        $request->expects(self::any())->method('getBody')->willReturn($body);
 
         $response = $this->createMock(Response::class);
-        $response->expects(self::once())->method('writeContinue');
 
         $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'POST')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
+            ->expects(self::never())
             ->method('__invoke')
             ->with('foo=bar')
             ->willReturnSelf();
@@ -248,36 +225,24 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(RequestListener::class, $listener($request, $response));
     }
 
-    public function testWithTransfertEncodingBodyMethodWithContinue()
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testWithTransfertEncodingBodyMethodBodyNotReadableInterface()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
         $request->expects(self::any())->method('getMethod')->willReturn('post');
         $request->expects(self::any())->method('hasHeader')->willReturnMap([
             ['Content-Length', false],
             ['Transfer-Encoding', true],
         ]);
-        $request->expects(self::any())->method('expectsContinue')->willReturn(true);
-        $request->expects(self::once())
-            ->method('on')
-            ->with('data')
-            ->willReturnCallback(function ($event, $callback) use ($request) {
-                self::assertEquals('data', $event);
-                $callback('foo=bar');
-
-                return $request;
-            });
+        $body = $this->createMock(StreamInterface::class);
+        $request->expects(self::any())->method('getBody')->willReturn($body);
 
         $response = $this->createMock(Response::class);
-        $response->expects(self::once())->method('writeContinue');
 
         $this->getBridge()
-            ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response, 'POST')
-            ->willReturnSelf();
-
-        $this->getBridge()
-            ->expects(self::once())
+            ->expects(self::never())
             ->method('__invoke')
             ->with('foo=bar')
             ->willReturnSelf();

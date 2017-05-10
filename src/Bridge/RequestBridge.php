@@ -23,7 +23,7 @@
 namespace Teknoo\ReactPHPBundle\Bridge;
 
 use Psr\Log\LoggerInterface;
-use React\Http\Request as ReactRequest;
+use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response as ReactResponse;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
@@ -41,8 +41,6 @@ use Teknoo\ReactPHPBundle\Service\DatesService;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
- *
- * @SuppressWarnings(PHPMD)
  */
 class RequestBridge
 {
@@ -52,7 +50,7 @@ class RequestBridge
     private $kernel;
 
     /**
-     * @var ReactRequest
+     * @var ServerRequestInterface
      */
     private $reactRequest;
 
@@ -65,11 +63,6 @@ class RequestBridge
      * @var RequestBuilder
      */
     private $requestBuilder;
-
-    /**
-     * @var string
-     */
-    private $method;
 
     /**
      * @var LoggerInterface
@@ -116,17 +109,15 @@ class RequestBridge
      * To initialize this bridge with ReactPHP Request and Response and the HTTP Method of the current request.
      * Needed to execute this object.
      *
-     * @param ReactRequest  $request
+     * @param ServerRequestInterface  $request
      * @param ReactResponse $response
-     * @param string        $method
      *
      * @return RequestBridge
      */
-    public function handle(ReactRequest $request, ReactResponse $response, string $method): RequestBridge
+    public function handle(ServerRequestInterface $request, ReactResponse $response): RequestBridge
     {
         $this->reactRequest = $request;
         $this->reactResponse = $response;
-        $this->method = $method;
 
         return $this;
     }
@@ -155,9 +146,8 @@ class RequestBridge
      */
     private function checkRequirements()
     {
-        if (!$this->reactRequest instanceof ReactRequest
-            || !$this->reactResponse instanceof ReactResponse
-            || empty($this->method)) {
+        if (!$this->reactRequest instanceof ServerRequestInterface
+            || !$this->reactResponse instanceof ReactResponse) {
             throw new \RuntimeException('Error, the bridge has not handled the request');
         }
 
@@ -214,9 +204,11 @@ class RequestBridge
 
         $date = $this->datesService->getNow();
 
+        $server = $this->reactRequest->getServerParams();
+
         $message = \sprintf(
             '%s - [%] %s in %s (%s)',
-            $this->reactRequest->remoteAddress,
+            $server['REMOTE_ADDR'],
             $date->format('d/M/Y H:i:s O'),
             $error->getMessage(),
             $error->getFile(),
@@ -224,23 +216,6 @@ class RequestBridge
         );
 
         $this->logger->error($message);
-    }
-
-    /**
-     * To initialize a new request builder (via cloning) with request's body and request's method, before configure the
-     * builder with parsers to build the Symfony Request.
-     *
-     * @param string|null $content
-     *
-     * @return RequestBuilder
-     */
-    private function prepareBuilder(string &$content = null): RequestBuilder
-    {
-        $builder = clone $this->requestBuilder;
-        $builder->setMethod($this->method);
-        $builder->setContent($content);
-
-        return $builder;
     }
 
     /**
@@ -280,8 +255,7 @@ class RequestBridge
         $this->checkRequirements();
 
         try {
-            $builder = $this->prepareBuilder($content);
-            $builder->buildRequest($this->reactRequest, $this);
+            $this->requestBuilder->buildRequest($this->reactRequest, $this);
         } catch (NotFoundHttpException $e) {
             $this->reactResponse->writeHead($e->getStatusCode(), $e->getHeaders());
             $this->reactResponse->end($e->getMessage());

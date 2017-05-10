@@ -22,8 +22,9 @@
 
 namespace Teknoo\ReactPHPBundle\Bridge;
 
-use React\Http\Request as ReactRequest;
+use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response as ReactResponse;
+use React\Stream\ReadableStreamInterface;
 
 /**
  * Class RequestListener.
@@ -53,50 +54,17 @@ class RequestListener
     }
 
     /**
-     * To get a valid HTTP method.
-     *
-     * @param ReactRequest $request
-     *
-     * @return string
-     *
-     * @throws \RuntimeException
-     *
-     * @SuppressWarnings(PHPMD)
-     */
-    private function getMethod(ReactRequest $request)
-    {
-        $method = \strtoupper($request->getMethod());
-
-        switch ($method) {
-            case 'OPTIONS':
-            case 'HEAD':
-            case 'GET':
-            case 'TRACE':
-            case 'CONNECT':
-            case 'POST':
-            case 'PUT':
-            case 'DELETE':
-            case 'PATCH':
-                return $method;
-                break;
-        }
-
-        throw new \RuntimeException(sprintf('Method %s is not recognized', $method));
-    }
-
-    /**
      * To get a new instance bridge, by cloning, to handle the new request from ReactPHP.
      *
-     * @param ReactRequest  $request
+     * @param ServerRequestInterface  $request
      * @param ReactResponse $response
-     * @param string        $method
      *
      * @return RequestBridge
      */
-    private function getRequestBridge(ReactRequest $request, ReactResponse $response, string $method): RequestBridge
+    private function getRequestBridge(ServerRequestInterface $request, ReactResponse $response): RequestBridge
     {
         $bridge = clone $this->bridge;
-        $bridge->handle($request, $response, $method);
+        $bridge->handle($request, $response);
 
         return $bridge;
     }
@@ -120,24 +88,24 @@ class RequestListener
      * To register the bridge to be executed on data event to execute a request a body-entity, (like POST request):
      * Any request with Content-Length or Transfer-Encoding headers.
      *
-     * @param ReactRequest  $request
-     * @param ReactResponse $response
+     * @param ServerRequestInterface  $request
      * @param RequestBridge $bridge
      *
      * @return RequestListener
      */
     private function runRequestWithBody(
-        ReactRequest $request,
-        ReactResponse $response,
+        ServerRequestInterface $request,
         RequestBridge $bridge
     ): RequestListener {
-        $request->on('data', function ($requestBody) use ($bridge) {
+        $body = $request->getBody();
+
+        if (!$body instanceof ReadableStreamInterface) {
+            throw new \RuntimeException('Error, the request body must implement ReadableStreamInterface');
+        }
+
+        $body->on('data', function ($requestBody) use ($bridge) {
             $bridge($requestBody);
         });
-
-        if ($request->expectsContinue()) {
-            $response->writeContinue();
-        }
 
         return $this;
     }
@@ -149,20 +117,18 @@ class RequestListener
      * Body are detected if  Ther is a Content-Length or Transfer-Encoding headers. TRACE request can not have a
      * body-entity. (Following rfc2616)
      *
-     * @param ReactRequest  $request
+     * @param ServerRequestInterface  $request
      * @param ReactResponse $response
      *
      * @return self
      */
-    public function __invoke(ReactRequest $request, ReactResponse $response)
+    public function __invoke(ServerRequestInterface $request, ReactResponse $response)
     {
-        $method = $this->getMethod($request);
+        $bridge = $this->getRequestBridge($request, $response);
 
-        $bridge = $this->getRequestBridge($request, $response, $method);
-
-        if ('TRACE' !== $method
+        if ('TRACE' !== \strtoupper($request->getMethod())
             && ($request->hasHeader('Content-Length') || $request->hasHeader('Transfer-Encoding'))) {
-            $this->runRequestWithBody($request, $response, $bridge);
+            $this->runRequestWithBody($request, $bridge);
         } else {
             $this->runRequestWithNoBody($bridge);
         }

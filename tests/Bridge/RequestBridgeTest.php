@@ -23,7 +23,7 @@
 namespace Teknoo\Tests\ReactPHPBundle\Bridge;
 
 use Psr\Log\LoggerInterface;
-use React\Http\Request;
+use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -135,14 +135,12 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testWithNoBodyNoTerminateKernel()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
 
         $requestBuilder = $this->getRequestBuilder();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setMethod')->with('GET')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(null)->willReturnSelf();
 
         $bridge = $this->buildRequestBridge();
 
@@ -153,14 +151,12 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testWithBodyNoTerminateKernel()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
 
         $requestBuilder = $this->getRequestBuilder();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setMethod')->with('POST')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo' => 'bar']))->willReturnSelf();
 
         $bridge = $this->buildRequestBridge();
 
@@ -172,13 +168,11 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testWithNoBodyNoTerminateKernelNotFound()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
 
         $requestBuilder = $this->getRequestBuilder();
-        $requestBuilder->expects(self::once())->method('setMethod')->with('GET')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(null)->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new NotFoundHttpException('Not found'));
 
@@ -191,13 +185,11 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testWithBodyNoTerminateKernelNotFound()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
 
         $requestBuilder = $this->getRequestBuilder();
-        $requestBuilder->expects(self::once())->method('setMethod')->with('GET')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo' => 'bar']))->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new NotFoundHttpException('Not found'));
 
@@ -211,13 +203,11 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testWithNoBodyNoTerminateKernelError()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
 
         $requestBuilder = $this->getRequestBuilder();
-        $requestBuilder->expects(self::once())->method('setMethod')->with('GET')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(null)->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new \Exception('Error'));
 
@@ -230,13 +220,11 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testWithBodyNoTerminateKernelError()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
 
         $requestBuilder = $this->getRequestBuilder();
-        $requestBuilder->expects(self::once())->method('setMethod')->with('GET')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo' => 'bar']))->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new \Exception('Error'));
 
@@ -250,14 +238,14 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testWithNoBodyNoTerminateKernelErrorWithLogger()
     {
-        $request = $this->createMock(Request::class);
-        $request->remoteAddress = '123.123.123.123';
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects(self::any())
+            ->method('getServerParams')
+            ->willReturn(['REMOTE_ADDR' => '123.123.123.123']);
 
         $response = $this->createMock(Response::class);
 
         $requestBuilder = $this->getRequestBuilder();
-        $requestBuilder->expects(self::once())->method('setMethod')->with('GET')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(null)->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new \Exception('Error'));
 
@@ -286,14 +274,14 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testWithBodyNoTerminateKernelErrorWithLogger()
     {
-        $request = $this->createMock(Request::class);
-        $request->remoteAddress = '123.123.123.123';
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects(self::any())
+            ->method('getServerParams')
+            ->willReturn(['REMOTE_ADDR' => '123.123.123.123']);
 
         $response = $this->createMock(Response::class);
 
         $requestBuilder = $this->getRequestBuilder();
-        $requestBuilder->expects(self::once())->method('setMethod')->with('POST')->willReturnSelf();
-        $requestBuilder->expects(self::once())->method('setContent')->with(\http_build_query(['foo' => 'bar']))->willReturnSelf();
         $requestBuilder->expects(self::once())->method('buildRequest')->with($request)
             ->willThrowException(new \Exception('Error'));
 
@@ -333,7 +321,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testExecutePreparedRequestNoTerminateKernel()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
         $response->expects(self::once())->method('writeHead')->with(200, []);
@@ -367,7 +355,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testExecutePreparedRequestTerminateKernel()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
         $response->expects(self::once())->method('writeHead')->with(200, []);
@@ -406,7 +394,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testExecutePreparedRequestTerminateKernelWithLogger()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
         $response->expects(self::once())->method('writeHead')->with(200, []);
@@ -457,7 +445,7 @@ class RequestBridgeTest extends \PHPUnit_Framework_TestCase
 
     public function testExecutePreparedRequestNoTerminateKernelWithLogger()
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createMock(ServerRequestInterface::class);
 
         $response = $this->createMock(Response::class);
         $response->expects(self::once())->method('writeHead')->with(200, []);
