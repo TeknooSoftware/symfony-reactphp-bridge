@@ -5,8 +5,11 @@
 - Request Listener pass body to Request Bridge only when Content-Length or Transfer-Encoding are defined into headre,
   following rfc2616. (Not depending of HTTP's method)
 
+### Updated
+- Use PSR-7 Request thanks to last evolutions of ReactPHP/HTTP
+
 ### Added
-- Request Parser to parse the Request from React PHP with several and simply parser to generate the Symfony Request.
+- Request Builder to transform ServerRequestInterface to a Symfony Request via HttpFoundationFactory.
 - Allow usage of $_SERVER, cookies, `application/x-www-form-urlencoded`, `multipart/form-data` or `application/json``
   request.
 
