@@ -103,8 +103,8 @@ class RequestListener
             throw new \RuntimeException('Error, the request body must implement ReadableStreamInterface');
         }
 
-        $body->on('data', function ($requestBody) use ($bridge) {
-            $bridge($requestBody);
+        $body->on('data', function () use ($bridge) {
+            $bridge();
         });
 
         return $this;

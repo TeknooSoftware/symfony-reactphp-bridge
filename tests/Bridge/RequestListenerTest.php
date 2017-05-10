@@ -88,7 +88,6 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::once())
             ->method('__invoke')
-            ->with(null)
             ->willReturnSelf();
 
         $listener = $this->buildRequestListener();
@@ -115,7 +114,6 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::once())
             ->method('__invoke')
-            ->with(null)
             ->willReturnSelf();
 
         $listener = $this->buildRequestListener();
@@ -154,7 +152,6 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::once())
             ->method('__invoke')
-            ->with('foo=bar')
             ->willReturnSelf();
 
         $listener = $this->buildRequestListener();
@@ -192,7 +189,6 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::once())
             ->method('__invoke')
-            ->with('foo=bar')
             ->willReturnSelf();
 
         $listener = $this->buildRequestListener();
@@ -218,7 +214,6 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::never())
             ->method('__invoke')
-            ->with('foo=bar')
             ->willReturnSelf();
 
         $listener = $this->buildRequestListener();
@@ -244,7 +239,6 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->getBridge()
             ->expects(self::never())
             ->method('__invoke')
-            ->with('foo=bar')
             ->willReturnSelf();
 
         $listener = $this->buildRequestListener();

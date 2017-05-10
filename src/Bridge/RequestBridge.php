@@ -41,6 +41,8 @@ use Teknoo\ReactPHPBundle\Service\DatesService;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
+ *
+ * @SuppressWarnings(PHPMD)
  */
 class RequestBridge
 {
@@ -246,11 +248,9 @@ class RequestBridge
      * Called by the RequestListener or when ReactPHP emit the data event to convert the ReactPHP Request to a Symfony
      * Request and execute it with Symfony before send result to ReactPHP.
      *
-     * @param string|null &$content
-     *
      * @return self
      */
-    public function __invoke(string &$content = null): RequestBridge
+    public function __invoke(): RequestBridge
     {
         $this->checkRequirements();
 
