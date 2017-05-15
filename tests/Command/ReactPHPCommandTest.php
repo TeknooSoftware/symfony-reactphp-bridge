@@ -139,7 +139,7 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
                         return '0.0.0.0';
                         break;
                     case 'port':
-                        return '8012';
+                        return '18012';
                         break;
                 }
 
@@ -169,7 +169,7 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
                         return '0.0.0.0';
                         break;
                     case 'port':
-                        return '8012';
+                        return '38012';
                         break;
                     case 'secure':
                         return true;
@@ -202,7 +202,7 @@ class ReactPHPCommandTest extends \PHPUnit_Framework_TestCase
                         return '0.0.0.0';
                         break;
                     case 'port':
-                        return '8012';
+                        return '28012';
                         break;
                     case 'secure':
                         return true;

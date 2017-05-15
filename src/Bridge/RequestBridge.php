@@ -25,10 +25,12 @@ namespace Teknoo\ReactPHPBundle\Bridge;
 use Psr\Log\LoggerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use React\Http\Response as ReactResponse;
+use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
+use Symfony\Bridge\PsrHttpMessage\HttpFoundationFactoryInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\TerminableInterface;
 use Teknoo\ReactPHPBundle\Service\DatesService;
 
@@ -41,8 +43,6 @@ use Teknoo\ReactPHPBundle\Service\DatesService;
  *
  * @license     http://teknoo.software/license/mit         MIT License
  * @author      Richard Déloge <richarddeloge@gmail.com>
- *
- * @SuppressWarnings(PHPMD)
  */
 class RequestBridge
 {
@@ -52,19 +52,19 @@ class RequestBridge
     private $kernel;
 
     /**
-     * @var ServerRequestInterface
+     * @var DatesService
      */
-    private $reactRequest;
+    private $datesService;
 
     /**
-     * @var ReactResponse
+     * @var HttpFoundationFactoryInterface
      */
-    private $reactResponse;
+    private $httpFoundationFactory;
 
     /**
-     * @var RequestBuilder
+     * @var DiactorosFactory
      */
-    private $requestBuilder;
+    private $diactorosFactory;
 
     /**
      * @var LoggerInterface
@@ -72,25 +72,23 @@ class RequestBridge
     private $logger;
 
     /**
-     * @var DatesService
-     */
-    private $datesService;
-
-    /**
      * RequestBridge constructor.
      *
-     * @param KernelInterface $kernel
-     * @param DatesService    $datesService
-     * @param RequestBuilder  $builder
+     * @param KernelInterface                $kernel
+     * @param DatesService                   $datesService
+     * @param HttpFoundationFactoryInterface $foundationFactory
+     * @param DiactorosFactory               $diactorosFactory
      */
     public function __construct(
         KernelInterface $kernel,
         DatesService $datesService,
-        RequestBuilder  $builder
+        HttpFoundationFactoryInterface  $foundationFactory,
+        DiactorosFactory $diactorosFactory
     ) {
         $this->kernel = $kernel;
         $this->datesService = $datesService;
-        $this->requestBuilder = $builder;
+        $this->httpFoundationFactory = $foundationFactory;
+        $this->diactorosFactory = $diactorosFactory;
     }
 
     /**
@@ -108,23 +106,6 @@ class RequestBridge
     }
 
     /**
-     * To initialize this bridge with ReactPHP Request and Response and the HTTP Method of the current request.
-     * Needed to execute this object.
-     *
-     * @param ServerRequestInterface  $request
-     * @param ReactResponse $response
-     *
-     * @return RequestBridge
-     */
-    public function handle(ServerRequestInterface $request, ReactResponse $response): RequestBridge
-    {
-        $this->reactRequest = $request;
-        $this->reactResponse = $response;
-
-        return $this;
-    }
-
-    /**
      * If the Kernel support Terminate behavior, execute it.
      *
      * @param SymfonyRequest  $request
@@ -136,21 +117,6 @@ class RequestBridge
     {
         if ($this->kernel instanceof TerminableInterface) {
             $this->kernel->terminate($request, $response);
-        }
-
-        return $this;
-    }
-
-    /**
-     * To fail if this bridge is not correctly configured.
-     *
-     * @return self
-     */
-    private function checkRequirements()
-    {
-        if (!$this->reactRequest instanceof ServerRequestInterface
-            || !$this->reactResponse instanceof ReactResponse) {
-            throw new \RuntimeException('Error, the bridge has not handled the request');
         }
 
         return $this;
@@ -196,9 +162,10 @@ class RequestBridge
      * To add in the log system an error durring the request.
      * If no logger has been defined, this operation is ignored.
      *
-     * @param \Throwable $error
+     * @param ServerRequestInterface $request
+     * @param \Throwable             $error
      */
-    private function logError(\Throwable $error)
+    private function logError(ServerRequestInterface $request, \Throwable $error)
     {
         if (!$this->logger instanceof LoggerInterface) {
             return;
@@ -206,7 +173,7 @@ class RequestBridge
 
         $date = $this->datesService->getNow();
 
-        $server = $this->reactRequest->getServerParams();
+        $server = $request->getServerParams();
 
         $message = \sprintf(
             '%s - [%] %s in %s (%s)',
@@ -224,21 +191,17 @@ class RequestBridge
      * Called by the Request builder, when the Symfony Request is ready to execute it with the Symfony Kernel.
      *
      * @param SymfonyRequest $request
+     * @param callable       $resolve
      *
      * @return RequestBridge
      */
-    public function executePreparedRequest(SymfonyRequest $request): RequestBridge
+    private function executePreparedRequest(SymfonyRequest $request, callable $resolve): RequestBridge
     {
         $sfResponse = $this->kernel->handle($request);
 
-        $this->reactResponse->writeHead(
-            $sfResponse->getStatusCode(),
-            $sfResponse->headers->all()
-        );
+        $resolve($this->diactorosFactory->createResponse($sfResponse));
 
-        $this->reactResponse->end($sfResponse->getContent());
         $this->terminate($request, $sfResponse);
-
         $this->logRequest($request, $sfResponse);
 
         return $this;
@@ -248,22 +211,23 @@ class RequestBridge
      * Called by the RequestListener or when ReactPHP emit the data event to convert the ReactPHP Request to a Symfony
      * Request and execute it with Symfony before send result to ReactPHP.
      *
-     * @return self
+     * @param ServerRequestInterface $request
+     * @param callable               $resolve
+     *
+     * @return RequestBridge
      */
-    public function __invoke(): RequestBridge
+    public function run(ServerRequestInterface $request, callable $resolve): RequestBridge
     {
-        $this->checkRequirements();
-
         try {
-            $this->requestBuilder->buildRequest($this->reactRequest, $this);
-        } catch (NotFoundHttpException $e) {
-            $this->reactResponse->writeHead($e->getStatusCode(), $e->getHeaders());
-            $this->reactResponse->end($e->getMessage());
-        } catch (\Throwable $e) {
-            $this->reactResponse->writeHead(500);
-            $this->reactResponse->end($e->getMessage());
+            $sfRequest = $this->httpFoundationFactory->createRequest($request);
 
-            $this->logError($e);
+            return $this->executePreparedRequest($sfRequest, $resolve);
+        } catch (HttpException $error) {
+            $this->logError($request, $error);
+            $resolve(new ReactResponse($error->getStatusCode(), $error->getHeaders(), $error->getMessage()));
+        } catch (\Throwable $error) {
+            $this->logError($request, $error);
+            $resolve(new ReactResponse(500, [], $error->getMessage()));
         }
 
         return $this;

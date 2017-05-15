@@ -22,10 +22,12 @@
 
 namespace Teknoo\Tests\ReactPHPBundle\Bridge;
 
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use React\Http\Response;
 use React\Stream\ReadableStreamInterface;
+use React\Promise\Promise;
 use Teknoo\ReactPHPBundle\Bridge\RequestBridge;
 use Teknoo\ReactPHPBundle\Bridge\RequestListener;
 
@@ -77,21 +79,24 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
             ['Transfer-Encoding', false],
         ]);
 
-        $response = $this->createMock(Response::class);
-
         $this->getBridge()
             ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response)
-            ->willReturnSelf();
+            ->method('run')
+            ->willReturnCallback(function ($request, $resolv) {
+                self::assertInstanceOf(ServerRequestInterface::class, $request);
+                $resolv($this->createMock(ResponseInterface::class));
 
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->willReturnSelf();
+                return $this->getBridge();
+            });
 
         $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
+        $promise = $listener($request);
+        self::assertInstanceOf(Promise::class, $promise);
+        $promise->then(function ($result){
+            self::assertInstanceOf(ResponseInterface::class, $result);
+        }, function () {
+            self::fail('an error has been excepted');
+        });
     }
 
     public function testTraceMethod()
@@ -103,21 +108,26 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
         ]);
         $request->expects(self::any())->method('getMethod')->willReturn('trace');
 
-        $response = $this->createMock(Response::class);
-
         $this->getBridge()
             ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response)
-            ->willReturnSelf();
+            ->method('run')
+            ->with($request)
+            ->willReturnCallback(function ($request, $resolv) {
+                self::assertInstanceOf(ServerRequestInterface::class, $request);
+                $resolv($this->createMock(ResponseInterface::class));
 
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->willReturnSelf();
+                return $this->getBridge();
+            });
+
 
         $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
+        $promise = $listener($request);
+        self::assertInstanceOf(Promise::class, $promise);
+        $promise->then(function ($result){
+            self::assertInstanceOf(ResponseInterface::class, $result);
+        }, function () {
+            self::fail('an error has been excepted');
+        });
     }
 
     public function testWithContentLengthBodyMethod()
@@ -140,22 +150,26 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
                 return $request;
             });
 
-        $response = $this->createMock(Response::class);
-        $response->expects(self::never())->method('writeContinue');
-
         $this->getBridge()
             ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response)
-            ->willReturnSelf();
+            ->method('run')
+            ->with($request)
+            ->willReturnCallback(function ($request, $resolv) {
+                self::assertInstanceOf(ServerRequestInterface::class, $request);
+                $resolv($this->createMock(ResponseInterface::class));
 
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->willReturnSelf();
+                return $this->getBridge();
+            });
+
 
         $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
+        $promise = $listener($request);
+        self::assertInstanceOf(Promise::class, $promise);
+        $promise->then(function ($result){
+            self::assertInstanceOf(ResponseInterface::class, $result);
+        }, function () {
+            self::fail('an error has been excepted');
+        });
     }
 
     public function testWithTransfertEncodingBodyMethod()
@@ -178,26 +192,28 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
                 return $request;
             });
 
-        $response = $this->createMock(Response::class);
-
         $this->getBridge()
             ->expects(self::once())
-            ->method('handle')
-            ->with($request, $response)
-            ->willReturnSelf();
+            ->method('run')
+            ->with($request)
+            ->willReturnCallback(function ($request, $resolv) {
+                self::assertInstanceOf(ServerRequestInterface::class, $request);
+                $resolv($this->createMock(ResponseInterface::class));
 
-        $this->getBridge()
-            ->expects(self::once())
-            ->method('__invoke')
-            ->willReturnSelf();
+                return $this->getBridge();
+            });
+
 
         $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
+        $promise = $listener($request);
+        self::assertInstanceOf(Promise::class, $promise);
+        $promise->then(function ($result){
+            self::assertInstanceOf(ResponseInterface::class, $result);
+        }, function () {
+            self::fail('an error has been excepted');
+        });
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testWithContentLengthBodyMethodBodyNotReadableInterface()
     {
         $request = $this->createMock(ServerRequestInterface::class);
@@ -206,23 +222,19 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
             ['Content-Length', true],
             ['Transfer-Encoding', false],
         ]);
-        $body = $this->createMock(StreamInterface::class);
-        $request->expects(self::any())->method('getBody')->willReturn($body);
-
-        $response = $this->createMock(Response::class);
 
         $this->getBridge()
             ->expects(self::never())
-            ->method('__invoke')
-            ->willReturnSelf();
+            ->method('run');
 
         $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
+        $promise = $listener($request);
+        self::assertInstanceOf(Promise::class, $promise);
+        $promise->then(function (){
+            self::fail('an error must been excepted');
+        });
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testWithTransfertEncodingBodyMethodBodyNotReadableInterface()
     {
         $request = $this->createMock(ServerRequestInterface::class);
@@ -231,17 +243,16 @@ class RequestListenerTest extends \PHPUnit_Framework_TestCase
             ['Content-Length', false],
             ['Transfer-Encoding', true],
         ]);
-        $body = $this->createMock(StreamInterface::class);
-        $request->expects(self::any())->method('getBody')->willReturn($body);
-
-        $response = $this->createMock(Response::class);
 
         $this->getBridge()
             ->expects(self::never())
-            ->method('__invoke')
-            ->willReturnSelf();
+            ->method('run');
 
         $listener = $this->buildRequestListener();
-        self::assertInstanceOf(RequestListener::class, $listener($request, $response));
+        $promise = $listener($request);
+        self::assertInstanceOf(Promise::class, $promise);
+        $promise->then(function (){
+            self::fail('an error must been excepted');
+        });
     }
 }

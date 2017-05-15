@@ -159,9 +159,7 @@ class ReactPHPCommand extends ContainerAwareCommand
         }
 
         //Enable HTTP server
-        $http = new HttpServer($socket);
-
-        $http->on('request', $this->requestListener);
+        new HttpServer($socket, $this->requestListener);
         $this->loop->run();
     }
 }

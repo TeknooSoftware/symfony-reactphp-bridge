@@ -3,7 +3,6 @@ parameters:
   #Request bridge
   teknoo.reactphp_bridge.request_bridge.class: 'Teknoo\ReactPHPBundle\Bridge\RequestBridge'
   teknoo.reactphp_bridge.request_listener.class: 'Teknoo\ReactPHPBundle\Bridge\RequestListener'
-  teknoo.reactphp_bridge.request_builder.class: 'Teknoo\ReactPHPBundle\Bridge\RequestBuilder'
 
   #Command controller
   teknoo.reactphp_bridge.command.class: 'Teknoo\ReactPHPBundle\Command\ReactPHPCommand'
@@ -11,26 +10,27 @@ parameters:
   #Vendors
   teknoo.reactphp_bridge.vendor.loop.class: 'React\EventLoop\LoopInterface'
   teknoo.reactphp_bridge.vendor.http_foundation_factory.class: 'Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory'
+  teknoo.reactphp_bridge.vendor.diactoros_factory.class: 'Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory'
 
   #services
   teknoo.reactphp_bridge.service.dates.class: 'Teknoo\ReactPHPBundle\Service\DatesService'
   teknoo.reactphp_bridge.logger.std_logger.class: 'Teknoo\ReactPHPBundle\Logger\StdLogger'
 
 services:
-  #Request bridge
-  teknoo.reactphp_bridge.request_builder:
-    class: "%teknoo.reactphp_bridge.request_builder.class%"
-    arguments:
-      - "@teknoo.reactphp_bridge.vendor.http_foundation_factory"
-
   teknoo.reactphp_bridge.request_bridge:
     class: "%teknoo.reactphp_bridge.request_bridge.class%"
     arguments:
       - "@kernel"
       - "@teknoo.reactphp_bridge.service.dates"
-      - "@teknoo.reactphp_bridge.request_builder"
+      - "@teknoo.reactphp_bridge.vendor.http_foundation_factory"
+      - "@teknoo.reactphp_bridge.vendor.diactoros_factory"
     calls:
       - ['setLogger', ["@teknoo.reactphp_bridge.logger.std_logger"]]
+
+  teknoo.reactphp_bridge.request_listener:
+    class: "%teknoo.reactphp_bridge.request_listener.class%"
+    arguments:
+      - "@teknoo.reactphp_bridge.request_bridge"
 
   #Command controller
   teknoo.reactphp_bridge.command:
@@ -49,6 +49,9 @@ services:
 
   teknoo.reactphp_bridge.vendor.http_foundation_factory:
     class: "%teknoo.reactphp_bridge.vendor.http_foundation_factory.class%"
+
+  teknoo.reactphp_bridge.vendor.diactoros_factory:
+    class: "%teknoo.reactphp_bridge.vendor.diactoros_factory.class%"
 
   #services
   teknoo.reactphp_bridge.service.dates:

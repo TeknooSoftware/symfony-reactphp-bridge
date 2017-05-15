@@ -23,7 +23,7 @@
 namespace Teknoo\ReactPHPBundle\Bridge;
 
 use Psr\Http\Message\ServerRequestInterface;
-use React\Http\Response as ReactResponse;
+use React\Promise\Promise;
 use React\Stream\ReadableStreamInterface;
 
 /**
@@ -56,30 +56,29 @@ class RequestListener
     /**
      * To get a new instance bridge, by cloning, to handle the new request from ReactPHP.
      *
-     * @param ServerRequestInterface  $request
-     * @param ReactResponse $response
-     *
      * @return RequestBridge
      */
-    private function getRequestBridge(ServerRequestInterface $request, ReactResponse $response): RequestBridge
+    private function getRequestBridge(): RequestBridge
     {
-        $bridge = clone $this->bridge;
-        $bridge->handle($request, $response);
-
-        return $bridge;
+        return clone $this->bridge;
     }
 
     /**
      * To run directly the bridge with request without body-entity (like GET request): Any request without
      * Content-Length or Transfer-Encoding headers.
      *
-     * @param RequestBridge $bridge
+     * @param RequestBridge          $bridge
+     * @param ServerRequestInterface $request
+     * @param callable               $resolve
      *
      * @return RequestListener
      */
-    private function runRequestWithNoBody(RequestBridge $bridge): RequestListener
-    {
-        $bridge();
+    private function runRequestWithNoBody(
+        RequestBridge $bridge,
+        ServerRequestInterface $request,
+        callable $resolve
+    ): RequestListener {
+        $bridge->run($request, $resolve);
 
         return $this;
     }
@@ -88,23 +87,21 @@ class RequestListener
      * To register the bridge to be executed on data event to execute a request a body-entity, (like POST request):
      * Any request with Content-Length or Transfer-Encoding headers.
      *
+     * @param ReadableStreamInterface $body
+     * @param RequestBridge           $bridge
      * @param ServerRequestInterface  $request
-     * @param RequestBridge $bridge
+     * @param callable                $resolve
      *
      * @return RequestListener
      */
     private function runRequestWithBody(
+        ReadableStreamInterface $body,
+        RequestBridge $bridge,
         ServerRequestInterface $request,
-        RequestBridge $bridge
+        callable $resolve
     ): RequestListener {
-        $body = $request->getBody();
-
-        if (!$body instanceof ReadableStreamInterface) {
-            throw new \RuntimeException('Error, the request body must implement ReadableStreamInterface');
-        }
-
-        $body->on('data', function () use ($bridge) {
-            $bridge();
+        $body->on('data', function () use ($bridge, $request, $resolve) {
+            $bridge->run($request, $resolve);
         });
 
         return $this;
@@ -117,22 +114,27 @@ class RequestListener
      * Body are detected if  Ther is a Content-Length or Transfer-Encoding headers. TRACE request can not have a
      * body-entity. (Following rfc2616)
      *
-     * @param ServerRequestInterface  $request
-     * @param ReactResponse $response
+     * @param ServerRequestInterface $request
      *
-     * @return self
+     * @return Promise
      */
-    public function __invoke(ServerRequestInterface $request, ReactResponse $response)
+    public function __invoke(ServerRequestInterface $request): Promise
     {
-        $bridge = $this->getRequestBridge($request, $response);
+        return new Promise(function ($resolve) use ($request) {
+            $bridge = $this->getRequestBridge();
 
-        if ('TRACE' !== \strtoupper($request->getMethod())
-            && ($request->hasHeader('Content-Length') || $request->hasHeader('Transfer-Encoding'))) {
-            $this->runRequestWithBody($request, $bridge);
-        } else {
-            $this->runRequestWithNoBody($bridge);
-        }
+            if ('TRACE' !== \strtoupper($request->getMethod())
+                && ($request->hasHeader('Content-Length') || $request->hasHeader('Transfer-Encoding'))) {
 
-        return $this;
+                /**
+                 * @var ReadableStreamInterface $body
+                 */
+                $body = $request->getBody();
+
+                return $this->runRequestWithBody($body, $bridge, $request, $resolve);
+            } else {
+                return $this->runRequestWithNoBody($bridge, $request, $resolve);
+            }
+        });
     }
 }
