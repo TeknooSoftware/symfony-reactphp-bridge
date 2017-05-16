@@ -10,7 +10,7 @@ parameters:
   #Vendors
   teknoo.reactphp_bridge.vendor.loop.class: 'React\EventLoop\LoopInterface'
   teknoo.reactphp_bridge.vendor.http_foundation_factory.class: 'Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory'
-  teknoo.reactphp_bridge.vendor.diactoros_factory.class: 'Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory'
+  teknoo.reactphp_bridge.vendor.diactoros_factory.class: 'Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory'
 
   #services
   teknoo.reactphp_bridge.service.dates.class: 'Teknoo\ReactPHPBundle\Service\DatesService'
