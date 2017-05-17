@@ -25,6 +25,7 @@ namespace Teknoo\ReactPHPBundle\Bridge;
 use Psr\Http\Message\ServerRequestInterface;
 use React\Promise\Promise;
 use React\Stream\ReadableStreamInterface;
+use function RingCentral\Psr7\stream_for;
 
 /**
  * Class RequestListener.
@@ -100,7 +101,30 @@ class RequestListener
         ServerRequestInterface $request,
         callable $resolve
     ): RequestListener {
-        $body->on('data', function () use ($bridge, $request, $resolve) {
+        $content = '';
+        //to concat body value into an unique string, will used as stream
+        $body->on('data', function ($data) use ($bridge, $request, $resolve, &$content) {
+            $content .= (string) $data;
+        });
+
+        //To start symfony loop when the body has been sent
+        $body->on('end', function () use ($bridge, $request, $resolve, &$content) {
+            //To replace the React Stream instance, not directly usable by Symfony (React Stream does not support
+            // __toString(), body is fetchable via events only, but symfony factory use only getContents.
+            $request = $request->withBody(stream_for($content));
+
+            if (!$request instanceof ServerRequestInterface) {
+                throw new \LogicException('Error the request returned is invalid');
+            }
+
+            //To decode the body when it is encoding followinf x form urlencoded
+            $parsedBody = [];
+            \parse_str($content, $parsedBody);
+
+            if (\is_array($parsedBody)) {
+                $request = $request->withParsedBody($parsedBody);
+            }
+
             $bridge->run($request, $resolve);
         });
 
