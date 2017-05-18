@@ -23,7 +23,8 @@
 namespace Teknoo\ReactPHPBundle\Service;
 
 /**
- * Class DatesService.
+ * Class DatesService, Service to retrieve the current date. For test, it's able to register an specific date to return
+ * at each coll of getNow().
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -35,23 +36,29 @@ namespace Teknoo\ReactPHPBundle\Service;
 class DatesService
 {
     /**
+     * Instance set by setNow() to return at getNow() instead of new \DateTime instance.
+     *
      * @var \DateTime
      */
-    private $date;
+    private $date = null;
 
     /**
+     * Return a clone a the defined date by setNow(), or a new instance of \DateTime representing current time.
+     *
      * @return \DateTime
      */
     public function getNow(): \DateTime
     {
         if ($this->date instanceof \DateTime) {
-            return $this->date;
+            return clone $this->date;
         }
 
         return new \DateTime();
     }
 
     /**
+     * To define a specific \DateTime instance to use at getNow().
+     *
      * @param \DateTime $date
      *
      * @return DatesService

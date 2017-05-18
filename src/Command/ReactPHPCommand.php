@@ -35,7 +35,15 @@ use Teknoo\ReactPHPBundle\Bridge\RequestListener;
 use Teknoo\ReactPHPBundle\Logger\StdLogger;
 
 /**
- * Class ReactPHPCommand.
+ * Class ReactPHPCommand. Main command controller to interpred CLI command, configure and start ReactPHP to start the
+ * Symfony Kernel and handling requests.
+ *
+ * Options are
+ * --interface | -i : To set the TCP interface listened by ReactPHP (by default 0.0.0.0)
+ * --port | -p : To set the TCP port listened by ReactPHP (by default 80)
+ * --secure | s : To enable TLS support, need to pass a local certificate (by default 0)
+ * --local-cert | -l : Locate certificate file for TLS support
+ * --env | -e : The Symfony environment to use (by default prod)
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *

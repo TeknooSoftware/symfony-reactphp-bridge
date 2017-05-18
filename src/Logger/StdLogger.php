@@ -27,7 +27,8 @@ use Psr\Log\LogLevel;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Class StdLogger.
+ * Class StdLogger to print all errors and notices messages on standard output and standard error output (stdout and
+ * stderr). Outputs are managed by OutputInterface instance, injected by the Command controller.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -41,14 +42,16 @@ class StdLogger extends AbstractLogger
     /**
      * @var OutputInterface
      */
-    private $stdOutput;
+    protected $stdOutput;
 
     /**
      * @var OutputInterface
      */
-    private $stdError;
+    protected $stdError;
 
     /**
+     * To define the Output instance to use to print notices.
+     *
      * @param OutputInterface $stdOutput
      *
      * @return self
@@ -61,6 +64,8 @@ class StdLogger extends AbstractLogger
     }
 
     /**
+     * To define the Output instance to use to print message or error.
+     *
      * @param OutputInterface $stdError
      *
      * @return self

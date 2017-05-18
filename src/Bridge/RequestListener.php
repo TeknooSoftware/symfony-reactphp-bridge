@@ -28,7 +28,11 @@ use React\Stream\ReadableStreamInterface;
 use function RingCentral\Psr7\stream_for;
 
 /**
- * Class RequestListener.
+ * Class RequestListener. Collable class (foncteur) to manage and prepare Symfony environment at each HTTP requests
+ * catched by ReactPHP HTTP.
+ *
+ * According-to requests (with or not a body) this listner is able to extract this body into
+ * a string and rebuild a new PSR7 Request.
  *
  * @copyright   Copyright (c) 2009-2017 Richard Déloge (richarddeloge@gmail.com)
  *
@@ -59,7 +63,7 @@ class RequestListener
      *
      * @return RequestBridge
      */
-    private function getRequestBridge(): RequestBridge
+    protected function getRequestBridge(): RequestBridge
     {
         return clone $this->bridge;
     }
@@ -74,7 +78,7 @@ class RequestListener
      *
      * @return RequestListener
      */
-    private function runRequestWithNoBody(
+    protected function runRequestWithNoBody(
         RequestBridge $bridge,
         ServerRequestInterface $request,
         callable $resolve
@@ -85,8 +89,12 @@ class RequestListener
     }
 
     /**
-     * To register the bridge to be executed on data event to execute a request a body-entity, (like POST request):
-     * Any request with Content-Length or Transfer-Encoding headers.
+     * To extract the Body request from ReactPHP PSR7 Request into a single string var before execute a clone of the
+     * Symfony Kernel.
+     * It's not possible to pass directly the ReactPHP Request because it need a StreamInterface instance as body
+     * able to return a string with getContents() or (string). But ReactPHP can only provides a ReadableStreamInterface
+     * returning content at event.
+     * A new usable stream instance is created from it's var.
      *
      * @param ReadableStreamInterface $body
      * @param RequestBridge           $bridge
@@ -95,7 +103,7 @@ class RequestListener
      *
      * @return RequestListener
      */
-    private function runRequestWithBody(
+    protected function runRequestWithBody(
         ReadableStreamInterface $body,
         RequestBridge $bridge,
         ServerRequestInterface $request,
@@ -132,7 +140,7 @@ class RequestListener
     }
 
     /**
-     * Event executed on request event emited by ReactPHP to execute directly request without body-entity
+     * Event executed on request event emitted by ReactPHP to execute directly request without body-entity
      * (like GET requests) or register the bridge to be executed on data event.
      *
      * Body are detected if  Ther is a Content-Length or Transfer-Encoding headers. TRACE request can not have a
@@ -147,11 +155,12 @@ class RequestListener
         return new Promise(function ($resolve) use ($request) {
             $bridge = $this->getRequestBridge();
 
+            //Test if it's a request with a body content
             if ('TRACE' !== \strtoupper($request->getMethod())
                 && ($request->hasHeader('Content-Length') || $request->hasHeader('Transfer-Encoding'))) {
 
                 /**
-                 * @var ReadableStreamInterface $body
+                 * @var ReadableStreamInterface
                  */
                 $body = $request->getBody();
 

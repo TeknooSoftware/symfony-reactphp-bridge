@@ -47,29 +47,39 @@ use Teknoo\ReactPHPBundle\Service\DatesService;
 class RequestBridge
 {
     /**
+     * Symfony Kernel to use to handle and execute HTTP Request.
+     *
      * @var KernelInterface
      */
-    private $kernel;
+    protected $kernel;
 
     /**
+     * To retriave \DateTime to use for log.
+     *
      * @var DatesService
      */
-    private $datesService;
+    protected $datesService;
 
     /**
+     * To convert PSR7 Request to Symfony Request.
+     *
      * @var HttpFoundationFactoryInterface
      */
-    private $httpFoundationFactory;
+    protected $httpFoundationFcty;
 
     /**
+     * To convert Symfony Response to PSR7 Response.
+     *
      * @var DiactorosFactory
      */
-    private $diactorosFactory;
+    protected $diactorosFactory;
 
     /**
+     * To log requests result, as Apache and errors.
+     *
      * @var LoggerInterface
      */
-    private $logger;
+    protected $logger;
 
     /**
      * RequestBridge constructor.
@@ -87,7 +97,7 @@ class RequestBridge
     ) {
         $this->kernel = $kernel;
         $this->datesService = $datesService;
-        $this->httpFoundationFactory = $foundationFactory;
+        $this->httpFoundationFcty = $foundationFactory;
         $this->diactorosFactory = $diactorosFactory;
     }
 
@@ -113,7 +123,7 @@ class RequestBridge
      *
      * @return self
      */
-    private function terminate(SymfonyRequest $request, SymfonyResponse $response): RequestBridge
+    protected function terminate(SymfonyRequest $request, SymfonyResponse $response): RequestBridge
     {
         if ($this->kernel instanceof TerminableInterface) {
             $this->kernel->terminate($request, $response);
@@ -137,7 +147,7 @@ class RequestBridge
      * @param SymfonyRequest  $request
      * @param SymfonyResponse $response
      */
-    private function logRequest(SymfonyRequest $request, SymfonyResponse $response)
+    protected function logRequest(SymfonyRequest $request, SymfonyResponse $response)
     {
         if (!$this->logger instanceof LoggerInterface) {
             return;
@@ -165,7 +175,7 @@ class RequestBridge
      * @param ServerRequestInterface $request
      * @param \Throwable             $error
      */
-    private function logError(ServerRequestInterface $request, \Throwable $error)
+    protected function logError(ServerRequestInterface $request, \Throwable $error)
     {
         if (!$this->logger instanceof LoggerInterface) {
             return;
@@ -188,14 +198,17 @@ class RequestBridge
     }
 
     /**
-     * Called by the Request builder, when the Symfony Request is ready to execute it with the Symfony Kernel.
+     * Called by method run, when the Symfony Request is ready to execute it with the Symfony Kernel.
+     * The response must be passed to ReactPHP Http via $resolve callable after be converted to PSR7 Response by
+     * Diactoros factory.
+     *
      *
      * @param SymfonyRequest $request
      * @param callable       $resolve
      *
      * @return RequestBridge
      */
-    private function executePreparedRequest(SymfonyRequest $request, callable $resolve): RequestBridge
+    protected function executePreparedRequest(SymfonyRequest $request, callable $resolve): RequestBridge
     {
         $sfResponse = $this->kernel->handle($request);
 
@@ -211,6 +224,9 @@ class RequestBridge
      * Called by the RequestListener or when ReactPHP emit the data event to convert the ReactPHP Request to a Symfony
      * Request and execute it with Symfony before send result to ReactPHP.
      *
+     * The method convert, thanks to Http Foundation factory all PSR7 request to Symfony request. Errors and exception
+     * are catched by this method, to generate an Error response (40* ou 50* responses) from the exception instance.
+     *
      * @param ServerRequestInterface $request
      * @param callable               $resolve
      *
@@ -219,7 +235,7 @@ class RequestBridge
     public function run(ServerRequestInterface $request, callable $resolve): RequestBridge
     {
         try {
-            $sfRequest = $this->httpFoundationFactory->createRequest($request);
+            $sfRequest = $this->httpFoundationFcty->createRequest($request);
 
             return $this->executePreparedRequest($sfRequest, $resolve);
         } catch (HttpException $error) {

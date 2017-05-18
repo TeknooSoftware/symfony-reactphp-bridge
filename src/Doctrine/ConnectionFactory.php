@@ -44,14 +44,14 @@ class ConnectionFactory extends DoctrineConnectionFactory
     /**
      * @var Connection[]
      */
-    private static $connections = [];
+    protected static $connections = [];
 
     /**
      * @param array $params
      *
      * @return string
      */
-    private function computeParamsash(array &$params): string
+    protected function computeParamsash(array &$params): string
     {
         return \hash('sha1', \json_encode($params));
     }
