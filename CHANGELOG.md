@@ -1,6 +1,6 @@
 #Teknoo Software - Symfony bridge for React PHP
 
-##[0.0.1-alpha5]
+##[0.0.1-alpha5] - 2017-05-20
 ###Fixed
 - Request Listener pass body to Request Bridge only when Content-Length or Transfer-Encoding are defined into headre,
   following rfc2616. (Not depending of HTTP's method)
