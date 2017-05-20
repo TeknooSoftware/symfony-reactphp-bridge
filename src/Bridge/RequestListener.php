@@ -111,7 +111,7 @@ class RequestListener
     ): RequestListener {
         $content = '';
         //to concat body value into an unique string, will used as stream
-        $body->on('data', function ($data) use ($bridge, $request, $resolve, &$content) {
+        $body->on('data', function ($data) use (&$content) {
             $content .= (string) $data;
         });
 
@@ -131,6 +131,7 @@ class RequestListener
                 \parse_str($content, $parsedBody);
 
                 if (\is_array($parsedBody)) {
+                    /** @var ServerRequestInterface $request */
                     $request = $request->withParsedBody($parsedBody);
                 }
             }
