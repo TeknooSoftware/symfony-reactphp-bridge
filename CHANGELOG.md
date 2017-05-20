@@ -1,5 +1,9 @@
 #Teknoo Software - Symfony bridge for React PHP
 
+##[0.0.1-alpha6] -
+###Fixed
+- Request Listener not parse body when the Content-Type is not x-www-form-urlencoded
+
 ##[0.0.1-alpha5] - 2017-05-20
 ###Fixed
 - Request Listener pass body to Request Bridge only when Content-Length or Transfer-Encoding are defined into headre,

@@ -125,12 +125,14 @@ class RequestListener
                 throw new \LogicException('Error the request returned is invalid');
             }
 
-            //To decode the body when it is encoding followinf x form urlencoded
-            $parsedBody = [];
-            \parse_str($content, $parsedBody);
+            if (false !== \stripos($request->getHeaderLine('Content-Type'), 'x-www-form-urlencoded')) {
+                //To decode the body when it is encoding followinf x form urlencoded
+                $parsedBody = [];
+                \parse_str($content, $parsedBody);
 
-            if (\is_array($parsedBody)) {
-                $request = $request->withParsedBody($parsedBody);
+                if (\is_array($parsedBody)) {
+                    $request = $request->withParsedBody($parsedBody);
+                }
             }
 
             $bridge->run($request, $resolve);
