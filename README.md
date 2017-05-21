@@ -5,6 +5,7 @@ Installation & Requirements
 ---------------------------
 To install this library with composer, run this command :
 
+    composer require react/http:dev-master
     composer require teknoo/reactphp-symfony
 
 This library requires :
@@ -12,7 +13,7 @@ This library requires :
     * PHP 7+
     * Composer
     * Symfony 3.2+
-    * ReactPHP 0.5+
+    * ReactPHP 0.6+
 
 Execution
 ---------
