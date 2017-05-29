@@ -1,5 +1,10 @@
 #Teknoo Software - Symfony bridge for React PHP
 
+##[0.0.1-alpha7] - 2017-05-29
+###Fixed
+- Use ReactPHP/HTTP 0.7
+- Adapt Command to last version of ReactPHP/HTTP
+
 ##[0.0.1-alpha6] - 2017-05-21
 ###Fixed
 - Request Listener not parse body when the Content-Type is not x-www-form-urlencoded
