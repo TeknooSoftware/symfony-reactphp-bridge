@@ -31,11 +31,14 @@ Via a PHP file :
     #!/usr/bin/env php
     <?php
 
-    use React\EventLoop\Factory;
+    use React\EventLoop\Factory as LoopFactory;
     use React\Socket\Server as SocketServer;
     use React\Http\Server as HttpServer;
     use Teknoo\ReactPHPBundle\Bridge\RequestBridge;
     use Teknoo\ReactPHPBundle\Bridge\RequestListener;
+    use Teknoo\ReactPHPBundle\Service\DatesService;
+    use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
+    use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
 
     require __DIR__.'/../app/autoload.php';
     if (\file_exists(__DIR__.'/../var/bootstrap.php.cache')) {
@@ -45,14 +48,24 @@ Via a PHP file :
     $kernel = new AppKernel('prod', false);
     $kernel->loadClassCache();
 
-    $requestBridge = new RequestBridge($kernel);
+    $requestBridge = new RequestBridge(
+        $kernel,
+        new DatesService(),
+        new HttpFoundationFactory(),
+        new DiactorosFactory()
+    );
     $requestListener = new RequestListener($requestBridge);
 
-    $loop = Factory::create();
-    $socket = new SocketServer('0.0.0.0:8080', $loop);
-    $http = new HttpServer($socket);
+    //React Loop
+    $loop = LoopFactory::create();
+    //Create front socket server
+    $socket = new SocketServer(8080, $loop);
 
-    $http->on('request', $requestListener);
+    //Enable HTTP server
+    $server = new HttpServer($requestListener);
+    $server->listen($socket);
+
+    //Start loop and so the server
     $loop->run();
 
 Credits
